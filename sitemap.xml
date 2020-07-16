@@ -11,11 +11,11 @@
   </url>
   
   <url>
-    <loc>https://troy.wang/docs/golang/posts/golang-gateway/</loc>
+    <loc>https://troy.wang/docs/kubernetes/posts/argo-rollouts/</loc>
   </url>
   
   <url>
-    <loc>https://troy.wang/docs/kubernetes/posts/argo-rollouts/</loc>
+    <loc>https://troy.wang/docs/golang/leetcode/</loc>
   </url>
   
   <url>
@@ -31,11 +31,23 @@
   </url>
   
   <url>
+    <loc>https://troy.wang/docs/golang/leetcode/jz003/</loc>
+  </url>
+  
+  <url>
     <loc>https://troy.wang/docs/kubernetes/posts/coredns-in-production/</loc>
   </url>
   
   <url>
     <loc>https://troy.wang/docs/kubernetes/posts/run-microk8s-on-ubuntu/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/golang/leetcode/jz004/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/golang/leetcode/jz005/</loc>
   </url>
   
   <url>
@@ -45,6 +57,10 @@
   
   <url>
     <loc>https://troy.wang/docs/compose/ansible/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/golang/posts/golang-gateway/</loc>
   </url>
   
   <url>

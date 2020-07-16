@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>leetcode on /bin/troy.wang</title>
+    <link>https://troy.wang/docs/golang/leetcode/</link>
+    <description>Recent content in leetcode on /bin/troy.wang</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="https://troy.wang/docs/golang/leetcode/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>剑指Offer003</title>
+      <link>https://troy.wang/docs/golang/leetcode/jz003/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/golang/leetcode/jz003/</guid>
+      <description>剑指Offer003.数组中重复的数字 题目 找出数组中重复的数字。 在一个长度为 n 的数组 nums 里的所有数字都在 0～n-1 的范围内。数组中某些数字是重复的，但不知道有几个数字重复了，也不知道每个数字重复了几次。请找出数组中任意一个重复的数字。 示例 1： 输入： [2, 3, 1, 0, 2, 5, 3] 输出：2 或 3 限制： 2 &amp;lt;= n &amp;lt;= 100000 来源：力扣（LeetCode） 链接：https://leetcode-cn.com/problems/shu-zu-zhong-zhong-fu-de-shu-zi-lcof 著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。 解答 1. map func findRepeatNumber(nums []int) int { m := make(map[int]struct{}) for _, n := range nums { if _, ok := m[n]; !ok { m[n] = struct{}{} continue } else { return n } } return 0 } 2.</description>
+    </item>
+    
+    <item>
+      <title>剑指Offer004</title>
+      <link>https://troy.wang/docs/golang/leetcode/jz004/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/golang/leetcode/jz004/</guid>
+      <description>剑指Offer004.二维数组中的查找 题目 在一个 n * m 的二维数组中，每一行都按照从左到右递增的顺序排序，每一列都按照从上到下递增的顺序排序。请完成一个函数，输入这样的一个二维数组和一个整数，判断数组中是否含有该整数。 示例: 现有矩阵 matrix 如下： [ [1, 4, 7, 11, 15], [2, 5, 8, 12, 19], [3, 6, 9, 16, 22], [10, 13, 14, 17, 24], [18, 21, 23, 26, 30] ] 给定 target = 5，返回 true。 给定 target = 20，返回 false。 限制： 0 &amp;lt;= n &amp;lt;= 1000 0 &amp;lt;= m &amp;lt;= 1000 注意：本题与主站 240 题相同：https://leetcode-cn.com/problems/search-a-2d-matrix-ii/ 来源：力扣（LeetCode） 链接：https://leetcode-cn.com/problems/er-wei-shu-zu-zhong-de-cha-zhao-lcof 著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。 解答 1. 两个for循环遍历 func findNumberIn2DArray(matrix [][]int, target int) bool { for _, y := range matrix { for _, x := range y { if x == target { return true } } } return false } 2.</description>
+    </item>
+    
+    <item>
+      <title>剑指Offer005</title>
+      <link>https://troy.wang/docs/golang/leetcode/jz005/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/golang/leetcode/jz005/</guid>
+      <description>剑指Offer005.替换空格 题目 请实现一个函数，把字符串 s 中的每个空格替换成&amp;#34;%20&amp;#34;。 示例 1： 输入：s = &amp;#34;We are happy.&amp;#34; 输出：&amp;#34;We%20are%20happy.&amp;#34; 限制： 0 &amp;lt;= s 的长度 &amp;lt;= 10000 来源：力扣（LeetCode） 链接：https://leetcode-cn.com/problems/ti-huan-kong-ge-lcof 著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。 解答 1. 使用新字符串操作 func replaceSpace(s string) string { var ns string for _, c := range s { if c == &amp;#39; &amp;#39; { ns += &amp;#34;%20&amp;#34; continue } ns += string(c) } return ns } 2. 一次for遍历+二分查找 func findNumberIn2DArray(matrix [][]int, target int) bool { for _, y := range matrix { if binarySearch(y, target) { return true } } return false } func binarySearch(nums []int, target int) bool { low := 0 high := len(nums) - 1 for { if low &amp;gt;= high { if low == high { if nums[low] == target { return true } } return false } mid := (low + high) /2 if target &amp;gt; nums[mid] { low = mid + 1 continue } if target &amp;lt; nums[mid] { high = mid continue } return true } } </description>
+    </item>
+    
+  </channel>
+</rss>
