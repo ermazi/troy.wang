@@ -1,2 +1,0 @@
-# troy.wang
-blog
