@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="linux基础知识  别看各种高级的应用五花八门，都离不开系统的基础，网络的基础，身边总看到一些人，平日里总是拿着这权威指南，那详解的，一段时间后，一讨论，还是屁都不会，更别说生产实践了。
+ 咱就拿如今最火的k8s来举例，它可以说是检验你综合能力的大考，linux基础，文件系统，shell，docker，负载均衡，dns，网络等，都需要掌握，独立部署和维护k8s集群缺一不可。
+kubernetes组件运行
+ systemd syslog 基本网络常识 docker cgroup tls/ssl证书 etcd  kube-proxy
+ iptables ipvs  Pod网络/CNI/NetworkPolicy
+ 路由 ipip封装网络 iptables eBPF  Ingress
+ nginx/traefik  随随便便罗列一些，k8s依赖应用，应用依赖基本知识，一旦能够做到庖丁解牛的程度，学什么都好轻松。
+应用方面的学习，基本是一通百通，同类产品熟练掌握一种即可，其他的类比差异化学习即可。
+ 不出问题时，最好的文档时官方文档 出问题时，最快的文档是stackoverflow 最有效的文档是代码
+ 入门最寂寞的方式就是看文档，其次是看书 最高效的方式是拜高手，讲的都是精髓，是精华
+ 最讨厌的是自以为是，不懂装懂的人，此类人直接弃疗 如果你有东西值得我用知识与你交换，那么你也许能获得短暂的认可 必要的崇拜是有必要的，保持敬畏，往往会收获惊喜
+最喜欢的是那种惺惺相惜的感觉，互相肯定，共同进步
+技术不行，那就学做人；做人不行，那就深耕技术；啥也不行，那再见了您嘞"><meta property="og:title" content="linux基础知识" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://troy.wang/docs/linux/basic/" />
+<meta property="og:updated_time" content="2020-07-14T11:20:35+08:00" />
+<title>linux基础知识 | /bin/troy.wang</title>
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.6df681b0bb21155cba49f6078e3559216772d8e03e780d240c73ea21817ed5e5.css" integrity="sha256-bfaBsLshFVy6SfYHjjVZIWdy2OA&#43;eA0kDHPqIYF&#43;1eU=">
+<script defer src="/en.search.min.98150f84f15670dd15a0308be7f26d10d7474a77213c5fa4f8e042be3c8e8257.js" integrity="sha256-mBUPhPFWcN0VoDCL5/JtENdHSnchPF&#43;k&#43;OBCvjyOglc="></script>
+<link rel="alternate" type="application/rss+xml" href="https://troy.wang/docs/linux/basic/index.xml" title="/bin/troy.wang" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" class="hidden" id="menu-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  <nav>
+<h2 class="book-brand">
+  <a href="/"><span>/bin/troy.wang</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <span>Kubernetes</span>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/argo-rollouts-support-traefik/" class="">argo-rollouts之流量管理添加traefik支持</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/argo-rollouts/" class="">k8s灰度发布神器之argo-rollouts</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/coredns-in-production/" class="">在kubernetes生产环境coredns</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/run-microk8s-on-ubuntu/" class="">在ubuntu上运行microk8s</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/linux/" class="">linux</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/basic/" class="collapsed active">linux基础知识</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/basic/start-stop-daemon/" class="">start-stop-daemon指北</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/basic/systemd/" class="">systemd指北</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/monitor/" class="collapsed ">监控</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/interview/" class="collapsed ">伪装者</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/bigdata/" class="collapsed ">大数据</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/shell/" class="collapsed ">shell</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/n9e/" class="">n9e</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/" class="collapsed ">n9e源码学golang</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/compose/" class="">编排</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/compose/ansible/" class="collapsed ">ansible</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/compose/terraform/" class="collapsed ">terraform</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <span>golang</span>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/golang/posts/golang-gateway/" class="">golang实现简单网关</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/golang/posts/circuit-breaker/" class="">hytrix-go</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/about-me/" class="">关于我</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+  </ul>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="/posts/" >
+        博客
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>linux基础知识</strong>
+
+  <label for="toc-control">
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+  </label>
+</div>
+
+
+  
+    <input type="checkbox" class="hidden" id="toc-control" />
+    <aside class="hidden clearfix">
+      
+  <nav id="TableOfContents"></nav>
+
+
+    </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h1 id="linux基础知识">linux基础知识</h1>
+<blockquote>
+<p>别看各种高级的应用五花八门，都离不开系统的基础，网络的基础，身边总看到一些人，平日里总是拿着这权威指南，那详解的，一段时间后，一讨论，还是屁都不会，更别说生产实践了。</p>
+</blockquote>
+<p>咱就拿如今最火的k8s来举例，它可以说是检验你综合能力的大考，linux基础，文件系统，shell，docker，负载均衡，dns，网络等，都需要掌握，独立部署和维护k8s集群缺一不可。</p>
+<p><strong>kubernetes组件运行</strong></p>
+<ul>
+<li>systemd</li>
+<li>syslog</li>
+<li>基本网络常识</li>
+<li>docker</li>
+<li>cgroup</li>
+<li>tls/ssl证书</li>
+<li>etcd</li>
+</ul>
+<p><strong>kube-proxy</strong></p>
+<ul>
+<li>iptables</li>
+<li>ipvs</li>
+</ul>
+<p><strong>Pod网络/CNI/NetworkPolicy</strong></p>
+<ul>
+<li>路由</li>
+<li>ipip封装网络</li>
+<li>iptables</li>
+<li>eBPF</li>
+</ul>
+<p><strong>Ingress</strong></p>
+<ul>
+<li>nginx/traefik</li>
+</ul>
+<p>随随便便罗列一些，k8s依赖应用，应用依赖基本知识，一旦能够做到庖丁解牛的程度，学什么都好轻松。</p>
+<p>应用方面的学习，基本是一通百通，同类产品熟练掌握一种即可，其他的类比差异化学习即可。</p>
+<hr>
+<p>不出问题时，最好的文档时官方文档
+出问题时，最快的文档是stackoverflow
+最有效的文档是代码</p>
+<hr>
+<p>入门最寂寞的方式就是看文档，其次是看书
+最高效的方式是拜高手，讲的都是精髓，是精华</p>
+<hr>
+<p>最讨厌的是自以为是，不懂装懂的人，此类人直接弃疗
+如果你有东西值得我用知识与你交换，那么你也许能获得短暂的认可
+必要的崇拜是有必要的，保持敬畏，往往会收获惊喜</p>
+<p>最喜欢的是那种惺惺相惜的感觉，互相肯定，共同进步</p>
+<p>技术不行，那就学做人；做人不行，那就深耕技术；啥也不行，那再见了您嘞</p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex justify-between">
+
+
+
+
+
+</div>
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  <nav id="TableOfContents"></nav>
+
+ 
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

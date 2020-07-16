@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="n9e源码学golang TODO  通用概念  identity address   index分析  endpoint注册   tree管理 内部gin http server  中间件 验证   内部rpc 公共包之pool collector分析  各个方面指标获取方式以及意义 补充更多指标   metricValue格式 transfer分析 judge分析 hbs分析 index分析 alert分析 图表相关 报警媒介(短信/微信/电话/IM) tsdb分析  tsdb尝试编写adapter至其他时序DB   关于权限扩展  基于casbin进行权限扩展    改进点  DB关闭问题，小书写错误 部分单词拼写问题，小书写错误 报警详情页面图表自动刷新功能 图表无值时，时间轴会被展开（去除没值部分） 管理团队的时候，管理员和普通成员添加逻辑优化  "><meta property="og:title" content="n9e源码学golang" />
+<meta property="og:description" content="" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://troy.wang/docs/n9e/code/" />
+
+<title>n9e源码学golang | /bin/troy.wang</title>
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.6df681b0bb21155cba49f6078e3559216772d8e03e780d240c73ea21817ed5e5.css" integrity="sha256-bfaBsLshFVy6SfYHjjVZIWdy2OA&#43;eA0kDHPqIYF&#43;1eU=">
+<script defer src="/en.search.min.98150f84f15670dd15a0308be7f26d10d7474a77213c5fa4f8e042be3c8e8257.js" integrity="sha256-mBUPhPFWcN0VoDCL5/JtENdHSnchPF&#43;k&#43;OBCvjyOglc="></script>
+<link rel="alternate" type="application/rss+xml" href="https://troy.wang/docs/n9e/code/index.xml" title="/bin/troy.wang" />
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" class="hidden" id="menu-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  <nav>
+<h2 class="book-brand">
+  <a href="/"><span>/bin/troy.wang</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <span>Kubernetes</span>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/argo-rollouts-support-traefik/" class="">argo-rollouts之流量管理添加traefik支持</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/argo-rollouts/" class="">k8s灰度发布神器之argo-rollouts</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/coredns-in-production/" class="">在kubernetes生产环境coredns</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/run-microk8s-on-ubuntu/" class="">在ubuntu上运行microk8s</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/linux/" class="">linux</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/basic/" class="collapsed ">linux基础知识</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/monitor/" class="collapsed ">监控</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/interview/" class="collapsed ">伪装者</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/bigdata/" class="collapsed ">大数据</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/shell/" class="collapsed ">shell</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/n9e/" class="">n9e</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/" class="collapsed active">n9e源码学golang</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/n9e-arch/" class="">n9e整体结构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/http-framework/" class="">n9e的http框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/regex/" class="">正则小剧场</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/compose/" class="">编排</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/compose/ansible/" class="collapsed ">ansible</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/compose/terraform/" class="collapsed ">terraform</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <span>golang</span>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/golang/posts/golang-gateway/" class="">golang实现简单网关</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/golang/posts/circuit-breaker/" class="">hytrix-go</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/about-me/" class="">关于我</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+  </ul>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="/posts/" >
+        博客
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>n9e源码学golang</strong>
+
+  <label for="toc-control">
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+  </label>
+</div>
+
+
+  
+    <input type="checkbox" class="hidden" id="toc-control" />
+    <aside class="hidden clearfix">
+      
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#todo">TODO</a></li>
+    <li><a href="#改进点">改进点</a></li>
+  </ul>
+</nav>
+
+
+    </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h1 id="n9e源码学golang">n9e源码学golang</h1>
+<h2 id="todo">TODO</h2>
+<ul>
+<li>通用概念
+<ul>
+<li>identity</li>
+<li>address</li>
+</ul>
+</li>
+<li>index分析
+<ul>
+<li>endpoint注册</li>
+</ul>
+</li>
+<li>tree管理</li>
+<li>内部gin http server
+<ul>
+<li>中间件</li>
+<li>验证</li>
+</ul>
+</li>
+<li>内部rpc</li>
+<li>公共包之pool</li>
+<li>collector分析
+<ul>
+<li>各个方面指标获取方式以及意义</li>
+<li>补充更多指标</li>
+</ul>
+</li>
+<li>metricValue格式</li>
+<li>transfer分析</li>
+<li>judge分析</li>
+<li>hbs分析</li>
+<li>index分析</li>
+<li>alert分析</li>
+<li>图表相关</li>
+<li>报警媒介(短信/微信/电话/IM)</li>
+<li>tsdb分析
+<ul>
+<li>tsdb尝试编写adapter至其他时序DB</li>
+</ul>
+</li>
+<li>关于权限扩展
+<ul>
+<li>基于casbin进行权限扩展</li>
+</ul>
+</li>
+</ul>
+<h2 id="改进点">改进点</h2>
+<ul>
+<li><input checked="" disabled="" type="checkbox"> DB关闭问题，小书写错误</li>
+<li><input checked="" disabled="" type="checkbox"> 部分单词拼写问题，小书写错误</li>
+<li><input disabled="" type="checkbox"> 报警详情页面图表自动刷新功能</li>
+<li><input disabled="" type="checkbox"> 图表无值时，时间轴会被展开（去除没值部分）</li>
+<li><input disabled="" type="checkbox"> 管理团队的时候，管理员和普通成员添加逻辑优化</li>
+</ul>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex justify-between">
+
+
+
+
+
+</div>
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#todo">TODO</a></li>
+    <li><a href="#改进点">改进点</a></li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

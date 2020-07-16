@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="n9e的http框架使用 Web流程  初始化http.Server 配置logging,recovery,session中间件 装载路由routers 启动http服务 关闭处理平滑关闭  web服务源码 // server object var srv = &amp;http.Server{ ReadTimeout: 10 * time.Second, WriteTimeout: 10 * time.Second, MaxHeaderBytes: 1 &lt;&lt; 20, } // start server func Start() { // get global config 	c := config.Get() // init middlewares 	loggerMid := middleware.LoggerWithConfig(middleware.LoggerConfig{SkipPaths: skipPaths}) recoveryMid := middleware.Recovery() store := cookie.NewStore([]byte(c.HTTP.Secret)) sessionMid := sessions.Sessions(&#34;falcon-ng&#34;, store) // debug mode? 	if c.Logger.Level != &#34;DEBUG&#34; { gin."><meta property="og:title" content="n9e的http框架" />
+<meta property="og:description" content="n9e的http框架使用 Web流程  初始化http.Server 配置logging,recovery,session中间件 装载路由routers 启动http服务 关闭处理平滑关闭  web服务源码 // server object var srv = &amp;http.Server{ ReadTimeout: 10 * time.Second, WriteTimeout: 10 * time.Second, MaxHeaderBytes: 1 &lt;&lt; 20, } // start server func Start() { // get global config 	c := config.Get() // init middlewares 	loggerMid := middleware.LoggerWithConfig(middleware.LoggerConfig{SkipPaths: skipPaths}) recoveryMid := middleware.Recovery() store := cookie.NewStore([]byte(c.HTTP.Secret)) sessionMid := sessions.Sessions(&#34;falcon-ng&#34;, store) // debug mode? 	if c.Logger.Level != &#34;DEBUG&#34; { gin." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://troy.wang/docs/n9e/code/http-framework/" />
+
+<title>n9e的http框架 | /bin/troy.wang</title>
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.6df681b0bb21155cba49f6078e3559216772d8e03e780d240c73ea21817ed5e5.css" integrity="sha256-bfaBsLshFVy6SfYHjjVZIWdy2OA&#43;eA0kDHPqIYF&#43;1eU=">
+<script defer src="/en.search.min.98150f84f15670dd15a0308be7f26d10d7474a77213c5fa4f8e042be3c8e8257.js" integrity="sha256-mBUPhPFWcN0VoDCL5/JtENdHSnchPF&#43;k&#43;OBCvjyOglc="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" class="hidden" id="menu-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  <nav>
+<h2 class="book-brand">
+  <a href="/"><span>/bin/troy.wang</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <span>Kubernetes</span>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/argo-rollouts-support-traefik/" class="">argo-rollouts之流量管理添加traefik支持</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/argo-rollouts/" class="">k8s灰度发布神器之argo-rollouts</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/coredns-in-production/" class="">在kubernetes生产环境coredns</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/run-microk8s-on-ubuntu/" class="">在ubuntu上运行microk8s</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/linux/" class="">linux</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/basic/" class="collapsed ">linux基础知识</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/monitor/" class="collapsed ">监控</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/interview/" class="collapsed ">伪装者</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/bigdata/" class="collapsed ">大数据</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/shell/" class="collapsed ">shell</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/n9e/" class="">n9e</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/" class="collapsed ">n9e源码学golang</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/n9e-arch/" class="">n9e整体结构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/http-framework/" class="active">n9e的http框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/regex/" class="">正则小剧场</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/compose/" class="">编排</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/compose/ansible/" class="collapsed ">ansible</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/compose/terraform/" class="collapsed ">terraform</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <span>golang</span>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/golang/posts/golang-gateway/" class="">golang实现简单网关</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/golang/posts/circuit-breaker/" class="">hytrix-go</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/about-me/" class="">关于我</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+  </ul>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="/posts/" >
+        博客
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>n9e的http框架</strong>
+
+  <label for="toc-control">
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+  </label>
+</div>
+
+
+  
+    <input type="checkbox" class="hidden" id="toc-control" />
+    <aside class="hidden clearfix">
+      
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#web流程">Web流程</a></li>
+    <li><a href="#web中间件">Web中间件</a>
+      <ul>
+        <li><a href="#日志">日志</a></li>
+        <li><a href="#异常恢复">异常恢复</a></li>
+        <li><a href="#会话">会话</a></li>
+        <li><a href="#验证">验证</a></li>
+      </ul>
+    </li>
+    <li><a href="#路由处理">路由处理</a>
+      <ul>
+        <li><a href="#代理">代理</a></li>
+        <li><a href="#接口设计">接口设计</a></li>
+      </ul>
+    </li>
+    <li><a href="#附录">附录</a>
+      <ul>
+        <li><a href="#信号相关">信号相关</a></li>
+      </ul>
+    </li>
+    <li><a href="#颜色相关">颜色相关</a></li>
+  </ul>
+</nav>
+
+
+    </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h1 id="n9e的http框架使用">n9e的http框架使用</h1>
+<h2 id="web流程">Web流程</h2>
+<ol>
+<li>初始化<code>http.Server</code></li>
+<li>配置<code>logging,recovery,session</code>中间件</li>
+<li>装载路由<code>routers</code></li>
+<li>启动http服务</li>
+<li>关闭处理平滑关闭</li>
+</ol>
+<details >
+  <summary>web服务源码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// server object
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">srv</span> = <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Server</span>{
+	<span style="color:#a6e22e">ReadTimeout</span>:    <span style="color:#ae81ff">10</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>,
+	<span style="color:#a6e22e">WriteTimeout</span>:   <span style="color:#ae81ff">10</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>,
+	<span style="color:#a6e22e">MaxHeaderBytes</span>: <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">20</span>,
+}
+
+<span style="color:#75715e">// start server
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Start</span>() {
+    <span style="color:#75715e">// get global config
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">Get</span>()
+
+    <span style="color:#75715e">// init middlewares
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">loggerMid</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">LoggerWithConfig</span>(<span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">LoggerConfig</span>{<span style="color:#a6e22e">SkipPaths</span>: <span style="color:#a6e22e">skipPaths</span>})
+	<span style="color:#a6e22e">recoveryMid</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Recovery</span>()
+	<span style="color:#a6e22e">store</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cookie</span>.<span style="color:#a6e22e">NewStore</span>([]byte(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">HTTP</span>.<span style="color:#a6e22e">Secret</span>))
+	<span style="color:#a6e22e">sessionMid</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sessions</span>.<span style="color:#a6e22e">Sessions</span>(<span style="color:#e6db74">&#34;falcon-ng&#34;</span>, <span style="color:#a6e22e">store</span>)
+
+    <span style="color:#75715e">// debug mode?
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Logger</span>.<span style="color:#a6e22e">Level</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;DEBUG&#34;</span> {
+		<span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">SetMode</span>(<span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">ReleaseMode</span>)
+		<span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">DisableConsoleColor</span>()
+	}
+
+    <span style="color:#75715e">// gin instance &amp;&amp; use middlewares
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">New</span>()
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">loggerMid</span>, <span style="color:#a6e22e">recoveryMid</span>, <span style="color:#a6e22e">sessionMid</span>)
+
+    <span style="color:#75715e">// init routers
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">routes</span>.<span style="color:#a6e22e">Config</span>(<span style="color:#a6e22e">r</span>)
+
+    <span style="color:#75715e">// use address toolkit to get monapi server&#39;s listen address
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">Addr</span> = <span style="color:#a6e22e">address</span>.<span style="color:#a6e22e">GetHTTPListen</span>(<span style="color:#e6db74">&#34;monapi&#34;</span>)
+    
+    <span style="color:#75715e">// assign gin handler to server
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">Handler</span> = <span style="color:#a6e22e">r</span>
+
+    <span style="color:#75715e">// use go routine to start http server
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;starting http server, listening on:&#34;</span>, <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">Addr</span>)
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">ListenAndServe</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ErrServerClosed</span> {
+			<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatalf</span>(<span style="color:#e6db74">&#34;listening %s occur error: %s\n&#34;</span>, <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">Addr</span>, <span style="color:#a6e22e">err</span>)
+		}
+	}()
+}
+
+<span style="color:#75715e">// graceful shutdown http server with timeout 5s
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Shutdown</span>() {
+	<span style="color:#a6e22e">ctx</span>, <span style="color:#a6e22e">cancel</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">WithTimeout</span>(<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Background</span>(), <span style="color:#ae81ff">5</span><span style="color:#f92672">*</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
+    <span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">cancel</span>()
+    
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">srv</span>.<span style="color:#a6e22e">Shutdown</span>(<span style="color:#a6e22e">ctx</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatalln</span>(<span style="color:#e6db74">&#34;cannot shutdown http server:&#34;</span>, <span style="color:#a6e22e">err</span>)
+	}
+}
+
+<span style="color:#75715e">// close all
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">ending</span>() {
+    <span style="color:#75715e">// trap signals
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Signal</span>, <span style="color:#ae81ff">1</span>)
+	<span style="color:#a6e22e">signal</span>.<span style="color:#a6e22e">Notify</span>(<span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">SIGINT</span>, <span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">SIGTERM</span>, <span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">SIGQUIT</span>)
+	<span style="color:#66d9ef">select</span> {
+	<span style="color:#66d9ef">case</span> <span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">c</span>:
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;stop signal caught, stopping... pid=%d\n&#34;</span>, <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Getpid</span>())
+	}
+
+	<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Close</span>()
+	<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Shutdown</span>()
+	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;portal stopped successfully&#34;</span>)
+}
+</code></pre></div>
+  </div>
+</details>
+
+<h2 id="web中间件">Web中间件</h2>
+<h3 id="日志">日志</h3>
+<p>该日志中间件原本是gin的默认日志中间件，n9e中单独拎出来是为了:</p>
+<ol>
+<li>添加自己需要的字段，比如打印Body</li>
+<li>使用全局的logger日志包打日志</li>
+</ol>
+<p>gin的默认日志中间件，在输出媒介，只支持传入io.Writer，默认<code>os.Stdout</code>，而logger包没有实现io.Writer接口的对象，只能侵入中间件进行修改。</p>
+<details >
+  <summary>日志中间件源码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">LogFormatter</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">params</span> <span style="color:#a6e22e">LogFormatterParams</span>) <span style="color:#66d9ef">string</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">LoggerConfig</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#75715e">// Optional. Default value is gin.defaultLogFormatter
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Formatter</span> <span style="color:#a6e22e">LogFormatter</span>
+
+	<span style="color:#75715e">// Output is a writer where logs are written.
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// Optional. Default value is gin.DefaultWriter.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">Output</span> <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">Writer</span>
+
+	<span style="color:#75715e">// SkipPaths is a url path array which logs are not written.
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// Optional.
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">SkipPaths</span> []<span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#75715e">// 默认日志格式，通过ANSI颜色控制
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">defaultLogFormatter</span> = <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">param</span> <span style="color:#a6e22e">LogFormatterParams</span>) <span style="color:#66d9ef">string</span> {
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">statusColor</span>, <span style="color:#a6e22e">methodColor</span>, <span style="color:#a6e22e">resetColor</span> <span style="color:#66d9ef">string</span>
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">IsOutputColor</span>() {
+		<span style="color:#75715e">// 
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">statusColor</span> = <span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">StatusCodeColor</span>()
+		<span style="color:#a6e22e">methodColor</span> = <span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">MethodColor</span>()
+		<span style="color:#a6e22e">resetColor</span> = <span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">ResetColor</span>()
+	}
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">Latency</span> &gt; <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Minute</span> {
+		<span style="color:#75715e">// Truncate in a golang &lt; 1.8 safe way
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">Latency</span> = <span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">Latency</span> <span style="color:#f92672">-</span> <span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">Latency</span><span style="color:#f92672">%</span><span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>
+	}
+
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;[GIN] |%s %3d %s| %13v | %15s |%s %-7s %s %s\n%s&#34;</span>,
+		<span style="color:#a6e22e">statusColor</span>, <span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">StatusCode</span>, <span style="color:#a6e22e">resetColor</span>,
+		<span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">Latency</span>,
+		<span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">ClientIP</span>,
+		<span style="color:#a6e22e">methodColor</span>, <span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">Method</span>, <span style="color:#a6e22e">resetColor</span>,
+		<span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">Path</span>,
+		<span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">ErrorMessage</span>,
+	)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">LoggerWithConfig</span>(<span style="color:#a6e22e">conf</span> <span style="color:#a6e22e">LoggerConfig</span>) <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">HandlerFunc</span> {
+	<span style="color:#75715e">// 配置日志格式化
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">formatter</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">conf</span>.<span style="color:#a6e22e">Formatter</span>
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">formatter</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">formatter</span> = <span style="color:#a6e22e">defaultLogFormatter</span>
+	}
+
+    <span style="color:#75715e">// 配置日志输出，默认标准输出
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">out</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">conf</span>.<span style="color:#a6e22e">Output</span>
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">out</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">out</span> = <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Stdout</span>
+	}
+
+
+
+	<span style="color:#75715e">// 判断是否是term，决定是否显示颜色
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">isTerm</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">true</span>
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">out</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">File</span>); !<span style="color:#a6e22e">ok</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Getenv</span>(<span style="color:#e6db74">&#34;TERM&#34;</span>) <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;dumb&#34;</span> <span style="color:#f92672">||</span>
+		(!<span style="color:#a6e22e">isatty</span>.<span style="color:#a6e22e">IsTerminal</span>(<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">Fd</span>()) <span style="color:#f92672">&amp;&amp;</span> !<span style="color:#a6e22e">isatty</span>.<span style="color:#a6e22e">IsCygwinTerminal</span>(<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">Fd</span>())) {
+		<span style="color:#a6e22e">isTerm</span> = <span style="color:#66d9ef">false</span>
+	}
+
+	<span style="color:#75715e">// 跳过特定uri
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">notlogged</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">conf</span>.<span style="color:#a6e22e">SkipPaths</span>
+
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">skip</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">struct</span>{}
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">length</span> <span style="color:#f92672">:=</span> len(<span style="color:#a6e22e">notlogged</span>); <span style="color:#a6e22e">length</span> &gt; <span style="color:#ae81ff">0</span> {
+		<span style="color:#a6e22e">skip</span> = make(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">struct</span>{}, <span style="color:#a6e22e">length</span>)
+
+		<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">path</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">notlogged</span> {
+			<span style="color:#a6e22e">skip</span>[<span style="color:#a6e22e">path</span>] = <span style="color:#66d9ef">struct</span>{}{}
+		}
+	}
+
+	<span style="color:#75715e">// 因为是实现中间件，所以必须返回handlerFunc
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+		<span style="color:#75715e">// 定时器开启
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">start</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+		<span style="color:#75715e">// 获取url
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">path</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Path</span>
+		<span style="color:#75715e">// 获取原始请求参数
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">raw</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">RawQuery</span>
+
+		<span style="color:#66d9ef">var</span> (
+			<span style="color:#a6e22e">rdr1</span> <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">ReadCloser</span>
+			<span style="color:#a6e22e">rdr2</span> <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">ReadCloser</span>
+		)
+
+		<span style="color:#75715e">// 获取body，
+</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Method</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;GET&#34;</span> {
+			<span style="color:#75715e">// 读取body，得到buf
+</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">buf</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">ReadAll</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Body</span>)
+			<span style="color:#75715e">// 将Buffer实例转换为io.ReadCloser实例
+</span><span style="color:#75715e"></span>			<span style="color:#75715e">// rdr1没必要转换，下面用的时候，也只需要实现io.Reader就行了，甚至不需要转换，直接拿buf给下面用就好了
+</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">rdr1</span> = <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">NopCloser</span>(<span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">NewBuffer</span>(<span style="color:#a6e22e">buf</span>))
+			<span style="color:#75715e">// rdr2需要转换为io.ReaderCloser，赋值给Body
+</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">rdr2</span> = <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">NopCloser</span>(<span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">NewBuffer</span>(<span style="color:#a6e22e">buf</span>))
+
+			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Body</span> = <span style="color:#a6e22e">rdr2</span>
+		}
+
+		<span style="color:#75715e">// Process request
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Next</span>()
+
+		<span style="color:#75715e">// 将请求相关信息打印出来
+</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">skip</span>[<span style="color:#a6e22e">path</span>]; !<span style="color:#a6e22e">ok</span> {
+			<span style="color:#a6e22e">param</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">LogFormatterParams</span>{
+				<span style="color:#a6e22e">Request</span>: <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>,
+				<span style="color:#a6e22e">isTerm</span>:  <span style="color:#a6e22e">isTerm</span>,
+				<span style="color:#a6e22e">Keys</span>:    <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Keys</span>,
+			}
+
+			<span style="color:#75715e">// 记录当钱时间戳
+</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">TimeStamp</span> = <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()
+			<span style="color:#75715e">// 计算延迟，并非响应延迟
+</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">Latency</span> = <span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">TimeStamp</span>.<span style="color:#a6e22e">Sub</span>(<span style="color:#a6e22e">start</span>)
+
+			<span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">ClientIP</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">ClientIP</span>()
+			<span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">Method</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Method</span>
+			<span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">StatusCode</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Writer</span>.<span style="color:#a6e22e">Status</span>()
+			<span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">ErrorMessage</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Errors</span>.<span style="color:#a6e22e">ByType</span>(<span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">ErrorTypePrivate</span>).<span style="color:#a6e22e">String</span>()
+
+			<span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">BodySize</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Writer</span>.<span style="color:#a6e22e">Size</span>()
+
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">raw</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+				<span style="color:#a6e22e">path</span> = <span style="color:#a6e22e">path</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;?&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">raw</span>
+			}
+
+			<span style="color:#a6e22e">param</span>.<span style="color:#a6e22e">Path</span> = <span style="color:#a6e22e">path</span>
+
+			<span style="color:#75715e">// fmt.Fprint(out, formatter(param))
+</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Info</span>(<span style="color:#a6e22e">formatter</span>(<span style="color:#a6e22e">param</span>))
+
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Method</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;GET&#34;</span> {
+				<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Info</span>(<span style="color:#a6e22e">readBody</span>(<span style="color:#a6e22e">rdr1</span>))
+			}
+		}
+	}
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">readBody</span>(<span style="color:#a6e22e">reader</span> <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">Reader</span>) <span style="color:#66d9ef">string</span> {
+	<span style="color:#a6e22e">buf</span> <span style="color:#f92672">:=</span> new(<span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">Buffer</span>)
+	<span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">ReadFrom</span>(<span style="color:#a6e22e">reader</span>)
+
+	<span style="color:#a6e22e">s</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">String</span>()
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">s</span>
+}
+
+<span style="color:#75715e">// 如果是线上运行，那么就清除颜色
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">DisableConsoleColor</span>() {
+	<span style="color:#a6e22e">consoleColorMode</span> = <span style="color:#a6e22e">disableColor</span>
+}
+</code></pre></div>
+  </div>
+</details>
+
+<p>这一块就是gin的日志中间件:</p>
+<ol>
+<li>根据http信息格式化日志</li>
+<li>打印http调试信息</li>
+</ol>
+<p>知识点:</p>
+<ol>
+<li>中间件写法，传入<code>context</code>，返回<code>handlerFunc</code>，通过<code>c.Next</code>继续处理请求，然后中间件继续执行</li>
+<li>日志处理写法</li>
+<li>io操作，针对于流处理，比如Body，既要日志处理<code>Body</code>信息，又要不影响<code>Body</code>后续处理，需要对<code>Body流</code>进行拷贝，<code>io.ReadAll</code>读取为字节，再将字节转换为<code>buffer</code>，再将<code>buffer</code>转换为<code>ioutil.NopCloser</code>，使其能够被重新赋给<code>Body</code>。</li>
+<li>golang对于颜色显示的处理，这里使用字节数组，当然直接使用转义字符/字符串会更加直观</li>
+</ol>
+<h3 id="异常恢复">异常恢复</h3>
+<p>recovery中间件，表面上是处理异常恢复，实际上是针对http异常状态的一个统一处理。</p>
+<details >
+  <summary>recovery中间件源码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// 入口，传入os.Stderr
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Recovery</span>() <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">HandlerFunc</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">RecoveryWithWriter</span>(<span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">DefaultErrorWriter</span>)
+}
+
+<span style="color:#75715e">// 
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">RecoveryWithWriter</span>(<span style="color:#a6e22e">out</span> <span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">Writer</span>) <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">HandlerFunc</span> {
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">logger</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Logger</span>
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">out</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">logger</span> = <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">out</span>, <span style="color:#e6db74">&#34;\n\n\x1b[31m&#34;</span>, <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">LstdFlags</span>)
+	}
+
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+		<span style="color:#75715e">// 注册一个defer func，所有请求最终都会进入
+</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">defer</span> <span style="color:#66d9ef">func</span>() {
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> recover(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+				<span style="color:#75715e">// custom error，页面错误均返回状态码200，然后打印错误信息，没必要使用status code来暴露错误
+</span><span style="color:#75715e"></span>				<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">e</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">err</span>.(<span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">PageError</span>); <span style="color:#a6e22e">ok</span> {
+					<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#ae81ff">200</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{<span style="color:#e6db74">&#34;err&#34;</span>: <span style="color:#a6e22e">e</span>.<span style="color:#a6e22e">Message</span>})
+					<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Abort</span>()
+					<span style="color:#66d9ef">return</span>
+				}
+
+				<span style="color:#75715e">// Check for a broken connection, as it is not really a
+</span><span style="color:#75715e"></span>				<span style="color:#75715e">// condition that warrants a panic stack trace.
+</span><span style="color:#75715e"></span>				<span style="color:#75715e">// 检测连接错误
+</span><span style="color:#75715e"></span>				<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">brokenPipe</span> <span style="color:#66d9ef">bool</span>
+				<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ne</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">err</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">net</span>.<span style="color:#a6e22e">OpError</span>); <span style="color:#a6e22e">ok</span> {
+					<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">se</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ne</span>.<span style="color:#a6e22e">Err</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">SyscallError</span>); <span style="color:#a6e22e">ok</span> {
+						<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Contains</span>(<span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">ToLower</span>(<span style="color:#a6e22e">se</span>.<span style="color:#a6e22e">Error</span>()), <span style="color:#e6db74">&#34;broken pipe&#34;</span>) <span style="color:#f92672">||</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Contains</span>(<span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">ToLower</span>(<span style="color:#a6e22e">se</span>.<span style="color:#a6e22e">Error</span>()), <span style="color:#e6db74">&#34;connection reset by peer&#34;</span>) {
+							<span style="color:#a6e22e">brokenPipe</span> = <span style="color:#66d9ef">true</span>
+						}
+					}
+				}
+				<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">logger</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+					<span style="color:#a6e22e">stack</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">stack</span>(<span style="color:#ae81ff">3</span>)
+					<span style="color:#a6e22e">httpRequest</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">httputil</span>.<span style="color:#a6e22e">DumpRequest</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>, <span style="color:#66d9ef">false</span>)
+					<span style="color:#a6e22e">headers</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Split</span>(string(<span style="color:#a6e22e">httpRequest</span>), <span style="color:#e6db74">&#34;\r\n&#34;</span>)
+					<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">idx</span>, <span style="color:#a6e22e">header</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">headers</span> {
+						<span style="color:#a6e22e">current</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">header</span>, <span style="color:#e6db74">&#34;:&#34;</span>)
+						<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">current</span>[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;Authorization&#34;</span> {
+							<span style="color:#a6e22e">headers</span>[<span style="color:#a6e22e">idx</span>] = <span style="color:#a6e22e">current</span>[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;: *&#34;</span>
+						}
+					}
+					<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">brokenPipe</span> {
+						<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;%s\n%s%s&#34;</span>, <span style="color:#a6e22e">err</span>, string(<span style="color:#a6e22e">httpRequest</span>), <span style="color:#a6e22e">reset</span>)
+					} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">IsDebugging</span>() {
+						<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;[Recovery] %s panic recovered:\n%s\n%s\n%s%s&#34;</span>,
+							<span style="color:#a6e22e">timeFormat</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()), <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Join</span>(<span style="color:#a6e22e">headers</span>, <span style="color:#e6db74">&#34;\r\n&#34;</span>), <span style="color:#a6e22e">err</span>, <span style="color:#a6e22e">stack</span>, <span style="color:#a6e22e">reset</span>)
+					} <span style="color:#66d9ef">else</span> {
+						<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;[Recovery] %s panic recovered:\n%s\n%s%s&#34;</span>,
+							<span style="color:#a6e22e">timeFormat</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()), <span style="color:#a6e22e">err</span>, <span style="color:#a6e22e">stack</span>, <span style="color:#a6e22e">reset</span>)
+					}
+				}
+
+				<span style="color:#75715e">// If the connection is dead, we can&#39;t write a status to it.
+</span><span style="color:#75715e"></span>				<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">brokenPipe</span> {
+					<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>.(<span style="color:#66d9ef">error</span>)) <span style="color:#75715e">// nolint: errcheck
+</span><span style="color:#75715e"></span>					<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Abort</span>()
+				} <span style="color:#66d9ef">else</span> {
+					<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">AbortWithStatus</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusInternalServerError</span>)
+				}
+			}
+		}()
+		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Next</span>()
+	}
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">stack</span>(<span style="color:#a6e22e">skip</span> <span style="color:#66d9ef">int</span>) []<span style="color:#66d9ef">byte</span> {
+	<span style="color:#a6e22e">buf</span> <span style="color:#f92672">:=</span> new(<span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">Buffer</span>) <span style="color:#75715e">// the returned data
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// As we loop, we open files and read them. These variables record the currently
+</span><span style="color:#75715e"></span>	<span style="color:#75715e">// loaded file.
+</span><span style="color:#75715e"></span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">lines</span> [][]<span style="color:#66d9ef">byte</span>
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">lastFile</span> <span style="color:#66d9ef">string</span>
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">skip</span>; ; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> { <span style="color:#75715e">// Skip the expected number of frames
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">pc</span>, <span style="color:#a6e22e">file</span>, <span style="color:#a6e22e">line</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">runtime</span>.<span style="color:#a6e22e">Caller</span>(<span style="color:#a6e22e">i</span>)
+		<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">ok</span> {
+			<span style="color:#66d9ef">break</span>
+		}
+		<span style="color:#75715e">// Print this much at least.  If we can&#39;t find the source, it won&#39;t show.
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">buf</span>, <span style="color:#e6db74">&#34;%s:%d (0x%x)\n&#34;</span>, <span style="color:#a6e22e">file</span>, <span style="color:#a6e22e">line</span>, <span style="color:#a6e22e">pc</span>)
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">file</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">lastFile</span> {
+			<span style="color:#a6e22e">data</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">ReadFile</span>(<span style="color:#a6e22e">file</span>)
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+				<span style="color:#66d9ef">continue</span>
+			}
+			<span style="color:#a6e22e">lines</span> = <span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">data</span>, []<span style="color:#66d9ef">byte</span>{<span style="color:#e6db74">&#39;\n&#39;</span>})
+			<span style="color:#a6e22e">lastFile</span> = <span style="color:#a6e22e">file</span>
+		}
+		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Fprintf</span>(<span style="color:#a6e22e">buf</span>, <span style="color:#e6db74">&#34;\t%s: %s\n&#34;</span>, <span style="color:#a6e22e">function</span>(<span style="color:#a6e22e">pc</span>), <span style="color:#a6e22e">source</span>(<span style="color:#a6e22e">lines</span>, <span style="color:#a6e22e">line</span>))
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">Bytes</span>()
+}
+</code></pre></div>
+  </div>
+</details>
+
+<p>在n9e中，controller中，使用了自定义错误<code>PageError</code></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">PageError</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">Message</span> <span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#a6e22e">PageError</span>) <span style="color:#a6e22e">Error</span>() <span style="color:#66d9ef">string</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Message</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">p</span> <span style="color:#a6e22e">PageError</span>) <span style="color:#a6e22e">String</span>() <span style="color:#66d9ef">string</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">p</span>.<span style="color:#a6e22e">Message</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Bomb</span>(<span style="color:#a6e22e">format</span> <span style="color:#66d9ef">string</span>, <span style="color:#a6e22e">a</span> <span style="color:#f92672">...</span><span style="color:#66d9ef">interface</span>{}) {
+	panic(<span style="color:#a6e22e">PageError</span>{<span style="color:#a6e22e">Message</span>: <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#a6e22e">format</span>, <span style="color:#a6e22e">a</span><span style="color:#f92672">...</span>)})
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Dangerous</span>(<span style="color:#a6e22e">v</span> <span style="color:#66d9ef">interface</span>{}) {
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">v</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span>
+	}
+
+	<span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">t</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">v</span>.(<span style="color:#66d9ef">type</span>) {
+	<span style="color:#66d9ef">case</span> <span style="color:#66d9ef">string</span>:
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">t</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+			panic(<span style="color:#a6e22e">PageError</span>{<span style="color:#a6e22e">Message</span>: <span style="color:#a6e22e">t</span>})
+		}
+	<span style="color:#66d9ef">case</span> <span style="color:#66d9ef">error</span>:
+		panic(<span style="color:#a6e22e">PageError</span>{<span style="color:#a6e22e">Message</span>: <span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Error</span>()})
+	}
+}
+</code></pre></div><p>然后针对于页面异常<code>PageErrro</code>，统一封装返回json</p>
+<p>如果是特定其他异常，比如<code>BrokenPipe</code>之类的，会做特殊处理，比如打印请求调试，打印调用栈</p>
+<h3 id="会话">会话</h3>
+<p>session会话，为了满足http无状态而产生的一个概念，主要用于存储用户区别信息，主要有两种方式：</p>
+<ol>
+<li>使用redis/mysql这类的共享存储，存于服务端</li>
+<li>使用Cookie存于浏览器端，但是必须加密，秘钥固定不变</li>
+</ol>
+<p>这类就使用了<code>cookie</code>加密存储<code>session</code>的方式</p>
+<details >
+  <summary>session中间件源码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">// 初始化
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">store</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">cookie</span>.<span style="color:#a6e22e">NewStore</span>([]byte(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">HTTP</span>.<span style="color:#a6e22e">Secret</span>))
+<span style="color:#a6e22e">sessionMid</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sessions</span>.<span style="color:#a6e22e">Sessions</span>(<span style="color:#e6db74">&#34;falcon-ng&#34;</span>, <span style="color:#a6e22e">store</span>)
+
+<span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">sessionMid</span>)
+
+<span style="color:#75715e">// 写入信息
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">session</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sessions</span>.<span style="color:#a6e22e">Default</span>(<span style="color:#a6e22e">c</span>)
+<span style="color:#a6e22e">session</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;username&#34;</span>, <span style="color:#a6e22e">user</span>)
+<span style="color:#a6e22e">session</span>.<span style="color:#a6e22e">Save</span>()
+
+<span style="color:#75715e">// 获取信息
+</span><span style="color:#75715e"></span><span style="color:#a6e22e">value</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">session</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#e6db74">&#34;username&#34;</span>)
+</code></pre></div>
+  </div>
+</details>
+
+<h3 id="验证">验证</h3>
+<p>对于需要登录访问的接口，提供了<code>middleware.Logined()</code>中间件；对于内部访问的接口，提供了<code>middleware.CheckHeaderToken()</code>中间件，只需要在响应的接口组Use即可</p>
+<details >
+  <summary>内建token验证中间件源码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">internalToken</span> = <span style="color:#e6db74">&#34;monapi-builtin-token&#34;</span>
+
+<span style="color:#75715e">// CheckHeaderToken check thirdparty x-srv-token
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">CheckHeaderToken</span>() <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">HandlerFunc</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+		<span style="color:#a6e22e">token</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">GetHeader</span>(<span style="color:#e6db74">&#34;x-srv-token&#34;</span>)
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">token</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">internalToken</span> {
+			<span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Bomb</span>(<span style="color:#e6db74">&#34;token[%s] invalid&#34;</span>, <span style="color:#a6e22e">token</span>)
+		}
+		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Next</span>()
+	}
+}
+</code></pre></div><div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#a6e22e">v1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;/v1/portal&#34;</span>).<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">CheckHeaderToken</span>())
+{
+	<span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/endpoint&#34;</span>, <span style="color:#a6e22e">endpointImport</span>)
+}
+</code></pre></div>
+  </div>
+</details>
+
+<p>仅有一处使用到该内建token，在index组件中，将endpoint存到endpoint表中。</p>
+<p><em>这里为啥不使用model中的EndpointImport方法，而非要调用接口，费解，如果使用EndpointImport，这样endpoint表在哪里读写，一目了然</em></p>
+<h2 id="路由处理">路由处理</h2>
+<h3 id="代理">代理</h3>
+<p>据透露，代理仅用于调试</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">indexReq</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+	<span style="color:#a6e22e">target</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">url</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;http://127.0.0.1:%d&#34;</span>, <span style="color:#a6e22e">address</span>.<span style="color:#a6e22e">GetHTTPPort</span>(<span style="color:#e6db74">&#34;index&#34;</span>)))
+	<span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">Dangerous</span>(<span style="color:#a6e22e">err</span>)
+
+	<span style="color:#a6e22e">proxy</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">httputil</span>.<span style="color:#a6e22e">NewSingleHostReverseProxy</span>(<span style="color:#a6e22e">target</span>)
+	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;X-Forwarded-Host&#34;</span>, <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#e6db74">&#34;Host&#34;</span>))
+
+	<span style="color:#a6e22e">proxy</span>.<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Writer</span>, <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Request</span>)
+}
+</code></pre></div><h3 id="接口设计">接口设计</h3>
+<p>尽可能满足<code>RESTful</code>接口设计</p>
+<details >
+  <summary>n9e接口源码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Config</span>(<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Engine</span>) {
+	<span style="color:#75715e">// 静态页面
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Static</span>(<span style="color:#e6db74">&#34;/pub&#34;</span>, <span style="color:#e6db74">&#34;./pub&#34;</span>)
+	<span style="color:#75715e">// 图标
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">StaticFile</span>(<span style="color:#e6db74">&#34;/favicon.ico&#34;</span>, <span style="color:#e6db74">&#34;./pub/favicon.ico&#34;</span>)
+
+	<span style="color:#75715e">// 心跳检测
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">hbs</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;/api/hbs&#34;</span>)
+	{
+		<span style="color:#a6e22e">hbs</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/heartbeat&#34;</span>, <span style="color:#a6e22e">heartBeat</span>)
+		<span style="color:#75715e">// 获取具体模块的所有实例，只包括judge和index
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">hbs</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/instances&#34;</span>, <span style="color:#a6e22e">instanceGets</span>)
+	}
+
+	<span style="color:#75715e">// portal接口
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">nolog</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;/api/portal&#34;</span>)
+	{
+		<span style="color:#75715e">// 健康接口
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">nolog</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/ping&#34;</span>, <span style="color:#a6e22e">ping</span>)
+		<span style="color:#75715e">// 版本
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">nolog</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/version&#34;</span>, <span style="color:#a6e22e">version</span>)
+		<span style="color:#75715e">// pid
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">nolog</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/pid&#34;</span>, <span style="color:#a6e22e">pid</span>)
+		<span style="color:#75715e">// remote addr
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">nolog</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/addr&#34;</span>, <span style="color:#a6e22e">addr</span>)
+
+		<span style="color:#75715e">// 登录接口
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">nolog</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/auth/login&#34;</span>, <span style="color:#a6e22e">login</span>)
+		<span style="color:#75715e">// 退出登录
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">nolog</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/auth/logout&#34;</span>, <span style="color:#a6e22e">logout</span>)
+		
+		<span style="color:#75715e">// 获取邀请token
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">nolog</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/users/invite&#34;</span>, <span style="color:#a6e22e">userInviteGet</span>)
+		<span style="color:#75715e">// 邀请用户注册
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">nolog</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/users/invite&#34;</span>, <span style="color:#a6e22e">userInvitePost</span>)
+
+		<span style="color:#75715e">// 获取endpoint的所有采集配置项
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">nolog</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/collects/:endpoint&#34;</span>, <span style="color:#a6e22e">collectGetByEndpoint</span>)
+
+		<span style="color:#75715e">// 获取策略
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">nolog</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/stras/effective&#34;</span>, <span style="color:#a6e22e">effectiveStrasGet</span>)
+		<span style="color:#a6e22e">nolog</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/stras&#34;</span>, <span style="color:#a6e22e">strasAll</span>)
+	}
+
+	<span style="color:#a6e22e">login</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;/api/portal&#34;</span>).<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">Logined</span>())
+	{
+		<span style="color:#75715e">// profile获取
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/self/profile&#34;</span>, <span style="color:#a6e22e">selfProfileGet</span>)
+		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/self/profile&#34;</span>, <span style="color:#a6e22e">selfProfilePut</span>)
+		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/self/password&#34;</span>, <span style="color:#a6e22e">selfPasswordPut</span>)
+
+		<span style="color:#75715e">// 用户列表
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/user&#34;</span>, <span style="color:#a6e22e">userListGet</span>)
+		<span style="color:#75715e">// 添加用户
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/user&#34;</span>, <span style="color:#a6e22e">userAddPost</span>)
+		<span style="color:#75715e">// 获取用户profile
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/user/:id/profile&#34;</span>, <span style="color:#a6e22e">userProfileGet</span>)
+		<span style="color:#75715e">// 修改profile
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/user/:id/profile&#34;</span>, <span style="color:#a6e22e">userProfilePut</span>)
+		<span style="color:#75715e">// 修改密码
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/user/:id/password&#34;</span>, <span style="color:#a6e22e">userPasswordPut</span>)
+		<span style="color:#75715e">// 删除用户
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">DELETE</span>(<span style="color:#e6db74">&#34;/user/:id&#34;</span>, <span style="color:#a6e22e">userDel</span>)
+
+		<span style="color:#75715e">// 获取team
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/team&#34;</span>, <span style="color:#a6e22e">teamListGet</span>)
+		<span style="color:#75715e">// 添加team
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/team&#34;</span>, <span style="color:#a6e22e">teamAddPost</span>)
+		<span style="color:#75715e">// 更新team
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/team/:id&#34;</span>, <span style="color:#a6e22e">teamPut</span>)
+		<span style="color:#75715e">// 删除team
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">DELETE</span>(<span style="color:#e6db74">&#34;/team/:id&#34;</span>, <span style="color:#a6e22e">teamDel</span>)
+		<span style="color:#75715e">// 获取endpoints
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/endpoint&#34;</span>, <span style="color:#a6e22e">endpointGets</span>)
+		<span style="color:#75715e">// 导入endpoints
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/endpoint&#34;</span>, <span style="color:#a6e22e">endpointImport</span>)
+		<span style="color:#75715e">// 修改endpoint，主要是改alias
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/endpoint/:id&#34;</span>, <span style="color:#a6e22e">endpointPut</span>)
+		<span style="color:#75715e">// 删除endpoint
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">DELETE</span>(<span style="color:#e6db74">&#34;/endpoint&#34;</span>, <span style="color:#a6e22e">endpointDel</span>)
+
+		<span style="color:#75715e">// 根据idents获取对应绑定的节点
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/endpoints/bindings&#34;</span>, <span style="color:#a6e22e">endpointBindingsGet</span>)
+		<span style="color:#75715e">// 根据节点id获取endpoints
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/endpoints/bynodeids&#34;</span>, <span style="color:#a6e22e">endpointByNodeIdsGets</span>)
+
+		<span style="color:#75715e">// 获取tree信息
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/tree&#34;</span>, <span style="color:#a6e22e">treeGet</span>)
+		<span style="color:#75715e">// 搜索tree获取节点
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/tree/search&#34;</span>, <span style="color:#a6e22e">treeSearchGet</span>)
+		<span style="color:#75715e">// 添加节点
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/node&#34;</span>, <span style="color:#a6e22e">nodePost</span>)
+		<span style="color:#75715e">// 修改节点名字
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/node/:id/name&#34;</span>, <span style="color:#a6e22e">nodeNamePut</span>)
+		<span style="color:#75715e">// 删除节点
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">DELETE</span>(<span style="color:#e6db74">&#34;/node/:id&#34;</span>, <span style="color:#a6e22e">nodeDel</span>)
+		<span style="color:#75715e">// 获取node节点下的所有endpoints
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/node/:id/endpoint&#34;</span>, <span style="color:#a6e22e">endpointsUnder</span>)
+		<span style="color:#75715e">// 绑定节点和endpoint
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/node/:id/endpoint-bind&#34;</span>, <span style="color:#a6e22e">endpointBind</span>)
+		<span style="color:#75715e">// 解绑节点和endpoint
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/node/:id/endpoint-unbind&#34;</span>, <span style="color:#a6e22e">endpointUnbind</span>)
+		<span style="color:#75715e">// 获取屏蔽配置
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/node/:id/maskconf&#34;</span>, <span style="color:#a6e22e">maskconfGets</span>)
+		<span style="color:#75715e">// 获取screen
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/node/:id/screen&#34;</span>, <span style="color:#a6e22e">screenGets</span>)
+		<span style="color:#75715e">// 添加screen
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/node/:id/screen&#34;</span>, <span style="color:#a6e22e">screenPost</span>)
+
+		<span style="color:#75715e">// 节点搜索
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/nodes/search&#34;</span>, <span style="color:#a6e22e">nodeSearchGet</span>)
+		<span style="color:#75715e">// 获取节点叶子节点
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/nodes/leafids&#34;</span>, <span style="color:#a6e22e">nodeLeafIdsGet</span>)
+		<span style="color:#75715e">// 获取节点的所有父节点
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/nodes/pids&#34;</span>, <span style="color:#a6e22e">nodePidsGet</span>)
+		<span style="color:#75715e">// 获取所有节点
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/nodes/byids&#34;</span>, <span style="color:#a6e22e">nodesByIdsGets</span>)
+
+		<span style="color:#75715e">// 添加屏蔽
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/maskconf&#34;</span>, <span style="color:#a6e22e">maskconfPost</span>)
+		<span style="color:#75715e">// 修改屏蔽
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/maskconf/:id&#34;</span>, <span style="color:#a6e22e">maskconfPut</span>)
+		<span style="color:#75715e">// 删除屏蔽
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">DELETE</span>(<span style="color:#e6db74">&#34;/maskconf/:id&#34;</span>, <span style="color:#a6e22e">maskconfDel</span>)
+
+		<span style="color:#75715e">// 修改screen
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/screen/:id&#34;</span>, <span style="color:#a6e22e">screenPut</span>)
+		<span style="color:#75715e">// 删除screen
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">DELETE</span>(<span style="color:#e6db74">&#34;/screen/:id&#34;</span>, <span style="color:#a6e22e">screenDel</span>)
+		<span style="color:#75715e">// 获取某screen下的所有subclass
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/screen/:id/subclass&#34;</span>, <span style="color:#a6e22e">screenSubclassGets</span>)
+		<span style="color:#75715e">// 添加某screen下的subclass
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/screen/:id/subclass&#34;</span>, <span style="color:#a6e22e">screenSubclassPost</span>)
+
+		<span style="color:#75715e">// 修改subclass
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/subclass&#34;</span>, <span style="color:#a6e22e">screenSubclassPut</span>)
+		<span style="color:#75715e">// 删除subclass
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">DELETE</span>(<span style="color:#e6db74">&#34;/subclass/:id&#34;</span>, <span style="color:#a6e22e">screenSubclassDel</span>)
+		<span style="color:#75715e">// 获取某subclass下的所有chart
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/subclass/:id/chart&#34;</span>, <span style="color:#a6e22e">chartGets</span>)
+		<span style="color:#75715e">// 在某subclass下添加chart
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/subclass/:id/chart&#34;</span>, <span style="color:#a6e22e">chartPost</span>)
+		<span style="color:#75715e">// 修改subclass的screen
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/subclasses/loc&#34;</span>, <span style="color:#a6e22e">screenSubclassLocPut</span>)
+		<span style="color:#75715e">// 修改chart
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/chart/:id&#34;</span>, <span style="color:#a6e22e">chartPut</span>)
+		<span style="color:#75715e">// 删除chart
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">DELETE</span>(<span style="color:#e6db74">&#34;/chart/:id&#34;</span>, <span style="color:#a6e22e">chartDel</span>)
+		<span style="color:#75715e">// 修改charts的权重，该权重用于排序
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/charts/weights&#34;</span>, <span style="color:#a6e22e">chartWeightsPut</span>)
+		
+		<span style="color:#75715e">// 图表调试用
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/tmpchart&#34;</span>, <span style="color:#a6e22e">tmpChartGet</span>)
+		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/tmpchart&#34;</span>, <span style="color:#a6e22e">tmpChartPost</span>)
+
+		<span style="color:#75715e">// 报警==事件
+</span><span style="color:#75715e"></span>		<span style="color:#75715e">// 事件获取
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/event/cur&#34;</span>, <span style="color:#a6e22e">eventCurGets</span>)
+		<span style="color:#75715e">// 根据id获取事件
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/event/cur/:id&#34;</span>, <span style="color:#a6e22e">eventCurGetById</span>)
+		<span style="color:#75715e">// 删除事件
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">DELETE</span>(<span style="color:#e6db74">&#34;/event/cur/:id&#34;</span>, <span style="color:#a6e22e">eventCurDel</span>)
+		<span style="color:#75715e">// 获取事件历史
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/event/his&#34;</span>, <span style="color:#a6e22e">eventHisGets</span>)
+		<span style="color:#75715e">// 根据id获取事件历史
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/event/his/:id&#34;</span>, <span style="color:#a6e22e">eventHisGetById</span>)
+		<span style="color:#75715e">// 添加认领人
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/event/curs/claim&#34;</span>, <span style="color:#a6e22e">eventCurClaim</span>)
+		<span style="color:#75715e">// 添加采集信息
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/collect&#34;</span>, <span style="color:#a6e22e">collectPost</span>)
+		<span style="color:#75715e">// 获取采集信息列表
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/collect/list&#34;</span>, <span style="color:#a6e22e">collectsGet</span>)
+		<span style="color:#75715e">// 获取采集信息列表
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/collect&#34;</span>, <span style="color:#a6e22e">collectGet</span>)
+		<span style="color:#75715e">// 修改采集项
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/collect&#34;</span>, <span style="color:#a6e22e">collectPut</span>)
+		<span style="color:#75715e">// 删除采集项
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">DELETE</span>(<span style="color:#e6db74">&#34;/collect&#34;</span>, <span style="color:#a6e22e">collectsDel</span>)
+		<span style="color:#75715e">// 采集项正则检测
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/collect/check&#34;</span>, <span style="color:#a6e22e">regExpCheck</span>)
+
+		<span style="color:#75715e">// 添加策略
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/stra&#34;</span>, <span style="color:#a6e22e">straPost</span>)
+		<span style="color:#75715e">// 修改策略
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">PUT</span>(<span style="color:#e6db74">&#34;/stra&#34;</span>, <span style="color:#a6e22e">straPut</span>)
+		<span style="color:#75715e">// 删除策略
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">DELETE</span>(<span style="color:#e6db74">&#34;/stra&#34;</span>, <span style="color:#a6e22e">strasDel</span>)
+		<span style="color:#75715e">// 获取策略
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/stra&#34;</span>, <span style="color:#a6e22e">strasGet</span>)
+		<span style="color:#75715e">// 获取某个策略
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">login</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/stra/:sid&#34;</span>, <span style="color:#a6e22e">straGet</span>)
+	}
+
+	
+	<span style="color:#a6e22e">v1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;/v1/portal&#34;</span>).<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">CheckHeaderToken</span>())
+	{	
+		<span style="color:#75715e">// 导入endpoint
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">v1</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/endpoint&#34;</span>, <span style="color:#a6e22e">endpointImport</span>)
+	}
+
+	<span style="color:#75715e">// 本地调试用
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">transferProxy</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;/api/transfer&#34;</span>)
+	{
+		<span style="color:#a6e22e">transferProxy</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/req&#34;</span>, <span style="color:#a6e22e">transferReq</span>)
+		<span style="color:#a6e22e">transferProxy</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/data&#34;</span>, <span style="color:#a6e22e">transferReq</span>)
+		<span style="color:#a6e22e">transferProxy</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/data/ui&#34;</span>, <span style="color:#a6e22e">transferReq</span>)
+		<span style="color:#a6e22e">transferProxy</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/push&#34;</span>, <span style="color:#a6e22e">transferReq</span>)
+	}
+
+	<span style="color:#75715e">// 本地调试用
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">indexProxy</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;/api/index&#34;</span>)
+	{
+		<span style="color:#a6e22e">indexProxy</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/metrics&#34;</span>, <span style="color:#a6e22e">indexReq</span>)
+		<span style="color:#a6e22e">indexProxy</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/tagkv&#34;</span>, <span style="color:#a6e22e">indexReq</span>)
+		<span style="color:#a6e22e">indexProxy</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/counter/fullmatch&#34;</span>, <span style="color:#a6e22e">indexReq</span>)
+		<span style="color:#a6e22e">indexProxy</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/counter/clude&#34;</span>, <span style="color:#a6e22e">indexReq</span>)
+		<span style="color:#a6e22e">indexProxy</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/counter/detail&#34;</span>, <span style="color:#a6e22e">indexReq</span>)
+	}
+}
+</code></pre></div>
+  </div>
+</details>
+
+<h4 id="各类资源通用模式模板">各类资源通用模式/模板</h4>
+<ul>
+<li>添加资源 <code>POST /api/portal/res</code></li>
+<li>获取列表 <code>GET /api/portal/res</code></li>
+<li>获取某个资源 <code>GET /api/portal/res/:id</code></li>
+<li>更新某个资源 <code>PUT /api/portal/res/:id</code></li>
+<li>更新某个资源的某一项 <code>PUT /api/portal/res/:id/item</code></li>
+<li>获取子资源 <code>GET /api/portal/res/:id/subres/:subid</code></li>
+<li>添加子资源 <code>POST /api/portal/res/:id/subres/:subid</code></li>
+<li>修改子资源 <code>PUT /api/portal/subres/:subid</code></li>
+<li>删除子资源 <code>DELETE /api/portal/subres/:subid</code></li>
+</ul>
+<h2 id="附录">附录</h2>
+<h3 id="信号相关">信号相关</h3>
+<p><code>SIGINT</code>,<code>SIGTERM</code>,<code>SIGQUIT</code>和<code>SIGHUP</code>默认行为都是杀掉进程，但是用户可以拦截他们，并这些信号添加自己的处理逻辑，所以不同的应用需要小心嘞，它可能不是系统默认行为。</p>
+
+
+
+
+<div class="book-tabs"><input type="radio" class="hidden" name="tabs-signals" id="tabs-signals-0" checked="checked" />
+  <label for="tabs-signals-0">SIGKILL-9</label>
+  <div class="book-tabs-content markdown-inner">必杀技！从不失败（但是针对一些进程状态异常的，可能有问题），这个信号很危险，不会给进程反应的时间，会导致一些资源没法清理，比如缓存目录，正在处理的连接等</div><input type="radio" class="hidden" name="tabs-signals" id="tabs-signals-1"  />
+  <label for="tabs-signals-1">SIGINT-2</label>
+  <div class="book-tabs-content markdown-inner">相当弱的一个信号，传统的意义是：停止正在做的，等待用户后续输入。在终端中通常由<code>Ctrl+C</code>产生；在非交互式的程序中，跟SIGTERM类似，就是杀死进程。</div><input type="radio" class="hidden" name="tabs-signals" id="tabs-signals-2"  />
+  <label for="tabs-signals-2">SIGTERM-15</label>
+  <div class="book-tabs-content markdown-inner">这是最正常的杀进程信号，它通知应用进程干净地死去，应用进程可能会处理一些后事，比如保存状态，释放资源等；但是特别重要的进程也会选择忽略SIGTERM信号。</div><input type="radio" class="hidden" name="tabs-signals" id="tabs-signals-3"  />
+  <label for="tabs-signals-3">SIGHUP-1</label>
+  <div class="book-tabs-content markdown-inner"><code>SIGHUP</code> is about the same as SIGTERM in terms of harshness, but it has a specific role because it&rsquo;s automatically sent to applications running in a terminal when the user disconnects from that terminal (etymologically, because the user was connecting via a telephone line and the modem hung up). SIGHUP is often involuntary, unlike SIGTERM which has to be sent explicitly, so applications should try to save their state on a SIGHUP. SIGHUP also has a completely different conventional meaning for non-user-facing applications (daemons), which is to reload their configuration file.</div><input type="radio" class="hidden" name="tabs-signals" id="tabs-signals-4"  />
+  <label for="tabs-signals-4">SIGQUIT-3</label>
+  <div class="book-tabs-content markdown-inner"><code>SIGQUIT</code> is the harshest of the ignorable signals. It&rsquo;s meant to be used when an application is misbehaving and needs to be killed now, and by default it traditionally left a core dump file (modern systems where most users wouldn&rsquo;t know what a core file is tend to not produce them by default). Applications can set a handler but should do very little (in particular not save any state) because the intent of SIGQUIT is to be used when something is seriously wrong.</div></div>
+
+<h2 id="颜色相关">颜色相关</h2>
+<p>参考: <a href="https://zh.wikipedia.org/wiki/ANSI%E8%BD%AC%E4%B9%89%E5%BA%8F%E5%88%97">ANSI转义序列</a></p>
+<p>在bash中使用颜色:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">echo -e <span style="color:#e6db74">&#34;\033[32m绿色字\033[0m&#34;</span>
+</code></pre></div><p><code>\033</code>是八进制表示2，或者十六进制<code>\x1b</code>表示，或者字节数组<code>29</code>表示，在ASCII中代表<code>ESC</code>，是不可打印的字符</p>
+<p><code>ANSI控制序列</code>三部分构成: <code>前置引导</code>，<code>CSI控制序列</code>，<code>结束符号</code>。</p>
+<p><code>CSI控制序列</code>主要是控制输出样式的，比如颜色， 光标等&hellip; ，格式为:<code>[&lt;PREFIX&gt;];[&lt;COLOR&gt;];[&lt;TEXT DECORATION&gt;]</code>，其中：</p>
+<ul>
+<li><code>PREFIX</code>： 使用的 256的颜色模式，后面将介绍。</li>
+<li><code>COLOR</code>： 输出颜色，前景色等</li>
+<li><code>TEXT DECORATION</code>: 文字装饰器，比如下划线等(1粗2深3下划线4斜体42背景绿)</li>
+</ul>
+<p>n9e中用字节表示:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#75715e">/* 27 -&gt; \33
+</span><span style="color:#75715e">91 -&gt; [
+</span><span style="color:#75715e">57 -&gt; 9
+</span><span style="color:#75715e">55 -&gt; 7
+</span><span style="color:#75715e">59 -&gt; ;
+</span><span style="color:#75715e">52 -&gt; 4
+</span><span style="color:#75715e">50 -&gt; 2
+</span><span style="color:#75715e">109 -&gt; m
+</span><span style="color:#75715e">*/</span>
+<span style="color:#75715e">// 代表绿底白字
+</span><span style="color:#75715e"></span>[]<span style="color:#66d9ef">byte</span>{<span style="color:#ae81ff">27</span>, <span style="color:#ae81ff">91</span>, <span style="color:#ae81ff">57</span>, <span style="color:#ae81ff">55</span>, <span style="color:#ae81ff">59</span>, <span style="color:#ae81ff">52</span>, <span style="color:#ae81ff">50</span>, <span style="color:#ae81ff">109</span>}
+</code></pre></div></article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex justify-between">
+
+
+
+
+
+</div>
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#web流程">Web流程</a></li>
+    <li><a href="#web中间件">Web中间件</a>
+      <ul>
+        <li><a href="#日志">日志</a></li>
+        <li><a href="#异常恢复">异常恢复</a></li>
+        <li><a href="#会话">会话</a></li>
+        <li><a href="#验证">验证</a></li>
+      </ul>
+    </li>
+    <li><a href="#路由处理">路由处理</a>
+      <ul>
+        <li><a href="#代理">代理</a></li>
+        <li><a href="#接口设计">接口设计</a></li>
+      </ul>
+    </li>
+    <li><a href="#附录">附录</a>
+      <ul>
+        <li><a href="#信号相关">信号相关</a></li>
+      </ul>
+    </li>
+    <li><a href="#颜色相关">颜色相关</a></li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Entrance on /bin/troy.wang</title>
+    <link>https://troy.wang/</link>
+    <description>Recent content in Entrance on /bin/troy.wang</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 14 Jul 2020 11:20:35 +0800</lastBuildDate>
+    
+	<atom:link href="https://troy.wang/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>argo-rollouts之流量管理添加traefik支持</title>
+      <link>https://troy.wang/docs/kubernetes/posts/argo-rollouts-support-traefik/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/kubernetes/posts/argo-rollouts-support-traefik/</guid>
+      <description>argo-rollouts之流量管理添加traefik支持 背景 在使用argo-rollouts做金丝雀部署的时候，为了精准控制流量，使用它流量控制的特性，该特性需要结合ingress网关一起作用，目前官网仅支持Nginx,Istio,ALB，而笔者使用最多的是traefik。
+最小化原则，最好在不改变现有基础设施的前提下用上argo-rollouts，所以被迫添加对traefik的支持。
+traefik可行性验证 参考文档traefik分流，我们可以通过annotation的控制实现。
+结合argo-rollouts以及traefik文档，我们需要准备的资源对象如下：
+ app-rollout || Rollout app-stable-service || Service app-canary-service || Service app-stable-ingress || Ingress  traefik带权重控制的Ingress配置：
+apiVersion: extensions/v1beta1 kind: Ingress metadata: annotations: kubernetes.io/ingress.class: traefik traefik.ingress.kubernetes.io/service-weights: | app-stable-service: 100% app-canary-service: 0% name: app-stable-ingress spec: rules: - http: paths: - backend: serviceName: app-stable-service servicePort: 80 path: / - backend: serviceName: app-canary-service servicePort: 80 path: / 对比nginx的流量控制，nginx采用两个ingress进行weighted负载均衡，而traefik采用一个ingress进行weighted负载均衡；所以在argo-rollouts的流量控制实现上，我们只需要去将目标ingress的annotation设置为上述目标ingress即可.  代码分析 type TrafficRoutingReconciler interface { Reconcile(desiredWeight int32) error Type() string } 这是流量控制的接口，我们只需要实现Reconcile方法和Type即可，传入目标权重值，将权重渲染到对应的ingress资源模板中应用即可。</description>
+    </item>
+    
+    <item>
+      <title>golang实现简单网关</title>
+      <link>https://troy.wang/docs/golang/posts/golang-gateway/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/golang/posts/golang-gateway/</guid>
+      <description>golang实现简单网关  网关=反向代理+负载均衡+各种策略，技术实现也有多种多样，有基于nginx使用lua的实现，比如openresty、kong；也有基于zuul的通用网关；还有就是golang的网关，比如tyk。
+这篇文章主要是讲如何基于golang实现一个简单的网关。
+ 1. 预备 1.1. 准备两个后端web服务 启动两个后端web服务（代码） type RealServer struct { Addr string } func (r *RealServer) Run() { log.Println(&amp;#34;start http server at &amp;#34; + r.Addr) mux := http.NewServeMux() mux.HandleFunc(&amp;#34;/&amp;#34;, r.EchoHandler) mux.HandleFunc(&amp;#34;/base/error&amp;#34;, r.ErrorHandler) mux.HandleFunc(&amp;#34;/timeout&amp;#34;, r.TimeoutHandler) server := &amp;amp;http.Server{ Addr: r.Addr, WriteTimeout: time.Second * 3, Handler: mux, } go func() { log.Fatal(server.ListenAndServe()) }() } func (r *RealServer) EchoHandler(w http.ResponseWriter, req *http.Request) { upath := fmt.Sprintf(&amp;#34;http://%s%s\n&amp;#34;, r.Addr, req.URL.Path) realIP := fmt.</description>
+    </item>
+    
+    <item>
+      <title>k8s灰度发布神器之argo-rollouts</title>
+      <link>https://troy.wang/docs/kubernetes/posts/argo-rollouts/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/kubernetes/posts/argo-rollouts/</guid>
+      <description>k8s灰度发布工具之argo-rollouts  Kubernetes默认的Deployment资源支持两种发布策略：RollingUpdate和Recreate，这两个恶略可以满足大部分发布场景；但是针对于各种大规模的生产场景，需要额外的发布策略，比如蓝绿部署或者金丝雀部署。为了满足改需求，argo-rollouts应运而生。
+ 背景 Recreate策略毫无平滑可言，通常用于仅可运行单副本的有状态应用/job。
+RollingUpdate策略，在完善的Pod生命周期前提下，能做到平滑。
+在生产持续部署过程中，多多少少会因为一些纰漏，导致新上线的应用出现问题；如果使用RollingUpdate，一旦下发指令，不可中断，直接影响全部流量，影响过大。
+要解决/缓解该问题，有几个努力方向：
+ 尽可能完善的测试，减少问题 使用蓝绿部署，在新版本集中进行完善的测试；确认没问题后，切换流量到新版本 使用金丝雀部署，先更新部分副本，然后使用生产小流量（比如1%）进行验证，确认没问题之后，再缓慢放开，5% 20% 50% 100%  argo-rollouts咋工作的 跟Deployment对象类似，Rollout对象管理ReplicaSets。Rollout的spec.strategy字段决定发布如何从老的replicaSet变为新的replicaSet，期间可暂停，可继续，可发布更新的版本。假设三个阶段，分别对应三个replicaSets：stable、new、newer，当stable -&amp;gt; new时，当前处于desiredWeight/Paused状态：
+ 如果newer发布，那么new -&amp;gt; 0，newer -&amp;gt; desiredWeight，stable -&amp;gt; newer 如果abort操作，那么new -&amp;gt; 0，stable -&amp;gt; max 如果promote操作，那么new -&amp;gt; max, stable -&amp;gt;0  argo-rollouts使用场景  用户想在生产环境基于新版本做最后一分钟的功能测试，那么可以使用蓝绿部署。本质就是两个Service的切换 用户想在线上流量进来之前，需要做一系列准备，比如预热，初始化等操作，那么可以使用蓝绿部署。在绿版本上完成相应的操作，然后再切换接收线上流量 用户想在生产环境使用小流量验证一段时间，确认稳定运行，没有Bug之后，再全量发布，那么可以使用金丝雀部署。小流量发布后，暂停验证，查看日志，观测应用指标，然后决定是回滚还是继续推进。 用户想慢慢的放进生产流量，那么可以使用金丝雀部署。定义多steps，慢慢调大权重 用户任性，说我不想用任何策略，就想滚动更新，那么也可以使用Rollout，将steps置空即可。  部署 集群级别部署argo rollouts $ kubectl apply -n argo-rollouts -f https://raw.githubusercontent.com/argoproj/argo-rollouts/stable/manifests/install.yaml 官方文档讲得挺详细的，自行摸索吧  安装kubectl插件 curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-darwin-amd64 chmod +x ./kubectl-argo-rollouts-darwin-amd64 sudo mv ./kubectl-argo-rollouts-darwin-amd64 /usr/local/bin/kubectl-argo-rollouts kubectl argo rollouts version 附录 常用命令 查看 kubectl argo rollouts list rollouts 中断回滚 kubectl argo rollouts abort app-rollout 继续发布 kubectl argo rollouts promote app-rollout  </description>
+    </item>
+    
+    <item>
+      <title>hytrix-go</title>
+      <link>https://troy.wang/docs/golang/posts/circuit-breaker/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/golang/posts/circuit-breaker/</guid>
+      <description>基于hytrix-go的熔断器  流量限制，熔断器，服务降级
+ 1. 代码示例 package main import ( &amp;#34;errors&amp;#34; &amp;#34;github.com/afex/hystrix-go/hystrix&amp;#34; &amp;#34;log&amp;#34; &amp;#34;net/http&amp;#34; &amp;#34;time&amp;#34; ) func main() { hystrixStreamHandler := hystrix.NewStreamHandler() hystrixStreamHandler.Start() go http.ListenAndServe(&amp;#34;:8074&amp;#34;, hystrixStreamHandler) hystrix.ConfigureCommand(&amp;#34;aaa&amp;#34;, hystrix.CommandConfig{ Timeout: 1000, // 单次请求 超时时间 	MaxConcurrentRequests: 1, // 最大并发量 	SleepWindow: 5000, // 熔断后多久去尝试服务是否可用 	RequestVolumeThreshold: 1, ErrorPercentThreshold: 1, }) for i := 0; i &amp;lt; 10000; i++ { //异步调用使用 hystrix.Go 	err := hystrix.Do(&amp;#34;aaa&amp;#34;, func() error { //test case 1 并发测试 	if i == 0 { return errors.</description>
+    </item>
+    
+    <item>
+      <title>tricks</title>
+      <link>https://troy.wang/docs/compose/ansible/tricks/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/compose/ansible/tricks/</guid>
+      <description>tricks  ansible小技巧
+ </description>
+    </item>
+    
+    <item>
+      <title>common-roles</title>
+      <link>https://troy.wang/docs/compose/ansible/common-roles/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/compose/ansible/common-roles/</guid>
+      <description>common-roles 1. databases系列  MySQL MongoDB  2. 消息队列  RocketMQ  </description>
+    </item>
+    
+    <item>
+      <title>在kubernetes生产环境coredns</title>
+      <link>https://troy.wang/docs/kubernetes/posts/coredns-in-production/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/kubernetes/posts/coredns-in-production/</guid>
+      <description>在kubernetes生产环境coredns .:53 { errors log health reload kubernetes cluster.local. in-addr.arpa ip6.arpa { pods insecure upstream 10.40.0.53 10.40.0.54 fallthrough in-addr.arpa ip6.arpa } autopath @kubernetes prometheus :9153 forward . 10.40.0.53 10.40.0.54 cache 30 } </description>
+    </item>
+    
+    <item>
+      <title>在ubuntu上运行microk8s</title>
+      <link>https://troy.wang/docs/kubernetes/posts/run-microk8s-on-ubuntu/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/kubernetes/posts/run-microk8s-on-ubuntu/</guid>
+      <description>在ubuntu上运行microk8s 不可抗拒的理由 Reliable, fast, small, upstream.
+  Fast install Get a full Kubernetes system running in under 60 seconds.
+  Secure Runs safely on your laptop with state of the art isolation.
+  Upstream CNCF binaries delivered to your laptop, with updates and upgrades.
+  Complete Includes a docker registry so you can make containers, push them, and deploy them all on your laptop.
+  Featureful Cool things you probably want to try on a small, standard K8s are all built-in.</description>
+    </item>
+    
+    <item>
+      <title>kafka管理员手册</title>
+      <link>https://troy.wang/docs/linux/bigdata/kafka/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/linux/bigdata/kafka/</guid>
+      <description> 持久化消息队列
+ </description>
+    </item>
+    
+    <item>
+      <title>ogg</title>
+      <link>https://troy.wang/docs/linux/bigdata/ogg/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/linux/bigdata/ogg/</guid>
+      <description>ogg ogg全名Oracle GoldenGate，是Oracle公司用于同步数据库的工具。
+1. 需求 监听源数据库MySQL/Oracle，将DML事件发送到Kafka中。
+2. 方案 2.1. 使用ogg（推荐） ogg支持MySQL和Oracle，将DML同步到kafka中，提供给后端使用。
+2.2. 使用canal canal是阿里开源的数据库同步/迁移工具，目前仅支持MySQL作为源数据库；对于Oracle，可以使用yugong同步到MySQL中，然后再基于canal进行binlog解析，最后同步到kafka中。
+3. ogg的安装部署（MySQL） 3.1. 准备材料  下载ogg二进制包  Oracle GoldenGate for Big Data 19.1.0.0.1 on Linux x86-64 Oracle GoldenGate 19.1.0.0.3 for MySQL on Linux x86-64   centos7  ogg-mysql(10.41.253.211) ogg-target(10.41.253.212)   JDK 1.8  /usr/local/jdk    3.2. 安装测试MySQL ubuntu
+# 安装 $ apt install mysql-server-5.7 -y # 简单配置 $ mysql_secure_installation # 添加binlog配置 $ grep -E &amp;#34;^(server-id|log_bin|binlog_format)&amp;#34; /etc/mysql/mysql.</description>
+    </item>
+    
+    <item>
+      <title>start-stop-daemon指北</title>
+      <link>https://troy.wang/docs/linux/basic/start-stop-daemon/</link>
+      <pubDate>Tue, 14 Jul 2020 11:20:35 +0800</pubDate>
+      
+      <guid>https://troy.wang/docs/linux/basic/start-stop-daemon/</guid>
+      <description>start-stop-daemon指北  管理系统级别守护进程
+ 案例  以coredns说明start-stop-daemon的使用方式
+ 启动
+start-stop-daemon --start --background -m --oknodo --pidfile /var/run/coredns.pid --exec /data/services/coredns/coredns -- -conf /data/services/coredns/Corefile 关闭
+start-stop-daemon --stop --pidfile /var/run/coredns.pid -R TERM/20/KILL/5 </description>
+    </item>
+    
+    <item>
+      <title>systemd指北</title>
+      <link>https://troy.wang/docs/linux/basic/systemd/</link>
+      <pubDate>Tue, 14 Jul 2020 11:20:35 +0800</pubDate>
+      
+      <guid>https://troy.wang/docs/linux/basic/systemd/</guid>
+      <description>使用systemd管理应用程序  linux上管理进程的方式多种多样，有python系列的supervisord，nodejs系列的pm2，linux命令start-stop-daemon，也有较为传统的sysinit的service，还有systemd方式，各有优缺点，该文主要讲述一下systemd管理服务的方式
+ 咋编写 查手册，查文档，弄清程序运行基本概念，需要啥参数搞啥参数即可
+以redis.service为例搞事 [Unit] Description=Advanced key-value store After=network.target Documentation=http://redis.io/documentation, man:redis-server(1) [Service] Type=forking ExecStart=/usr/bin/redis-server /etc/redis/redis.conf PIDFile=/run/redis/redis-server.pid TimeoutStopSec=0 Restart=always User=redis Group=redis RuntimeDirectory=redis RuntimeDirectoryMode=2755 UMask=007 PrivateTmp=yes LimitNOFILE=65535 PrivateDevices=yes ProtectHome=yes ReadOnlyDirectories=/ ReadWritePaths=-/var/lib/redis ReadWritePaths=-/var/log/redis ReadWritePaths=-/var/run/redis NoNewPrivileges=true CapabilityBoundingSet=CAP_SETGID CAP_SETUID CAP_SYS_RESOURCE MemoryDenyWriteExecute=true ProtectKernelModules=true ProtectKernelTunables=true ProtectControlGroups=true RestrictRealtime=true RestrictNamespaces=true RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX # redis-server can write to its own config file when in cluster mode so we # permit writing there by default. If you are not using this feature, it is # recommended that you replace the following lines with &amp;#34;ProtectSystem=full&amp;#34;.</description>
+    </item>
+    
+    <item>
+      <title>如何使用cfssl生成证书</title>
+      <link>https://troy.wang/posts/how-to-generate-server-certs/</link>
+      <pubDate>Wed, 20 May 2020 11:20:35 +0800</pubDate>
+      
+      <guid>https://troy.wang/posts/how-to-generate-server-certs/</guid>
+      <description>&lt;p&gt;记录一下cfssl生成证书的方式&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>后浪</title>
+      <link>https://troy.wang/posts/running-man/</link>
+      <pubDate>Tue, 05 May 2020 11:20:35 +0800</pubDate>
+      
+      <guid>https://troy.wang/posts/running-man/</guid>
+      <description>&lt;h2 id=&#34;弹幕&#34;&gt;&lt;strong&gt;弹幕&lt;/strong&gt;&lt;/h2&gt;</description>
+    </item>
+    
+    <item>
+      <title>hugo和ghpages简明了解</title>
+      <link>https://troy.wang/posts/how-to-use-hugo-and-github-pages/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/posts/how-to-use-hugo-and-github-pages/</guid>
+      <description>&lt;p&gt;记录一下hugo和ghpages&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>n9e整体结构</title>
+      <link>https://troy.wang/docs/n9e/code/n9e-arch/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/n9e/code/n9e-arch/</guid>
+      <description>11</description>
+    </item>
+    
+    <item>
+      <title>n9e的http框架</title>
+      <link>https://troy.wang/docs/n9e/code/http-framework/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/n9e/code/http-framework/</guid>
+      <description>n9e的http框架使用 Web流程  初始化http.Server 配置logging,recovery,session中间件 装载路由routers 启动http服务 关闭处理平滑关闭  web服务源码 // server object var srv = &amp;amp;http.Server{ ReadTimeout: 10 * time.Second, WriteTimeout: 10 * time.Second, MaxHeaderBytes: 1 &amp;lt;&amp;lt; 20, } // start server func Start() { // get global config 	c := config.Get() // init middlewares 	loggerMid := middleware.LoggerWithConfig(middleware.LoggerConfig{SkipPaths: skipPaths}) recoveryMid := middleware.Recovery() store := cookie.NewStore([]byte(c.HTTP.Secret)) sessionMid := sessions.Sessions(&amp;#34;falcon-ng&amp;#34;, store) // debug mode? 	if c.Logger.Level != &amp;#34;DEBUG&amp;#34; { gin.</description>
+    </item>
+    
+    <item>
+      <title>n9e默认监控指标</title>
+      <link>https://troy.wang/docs/linux/monitor/collector-metrics/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/linux/monitor/collector-metrics/</guid>
+      <description>分析collector组件的源码，查看一下n9e默认采集的一些指标，并尽可能理解含义。
+系统指标 CPU    metric 说明 必要性 采集来源     cpu.idle 空闲     cpu.util 使用率     cpu.user 用户使用率     cpu.sys 系统使用率     cpu.nice 低优先级使用率     cpu.iowait iowait使用率 并不一定反应io繁忙程度    cpu.irq 中断请求     cpu.softirq 软中断请求     cpu.steal      cpu.guest      cpu.</description>
+    </item>
+    
+    <item>
+      <title>terraform</title>
+      <link>https://troy.wang/docs/compose/terraform/terraform/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/compose/terraform/terraform/</guid>
+      <description>terraform 名词解释 Meta-Arguments cli可以在resource中使用meta-arguments，来改变资源的行为：
+ depends_on 显式指定依赖 count 根据count指定多个资源，可以使用count.index引用当前count for_each 根据map或者set来创建多个资源，key用each.key，value用each.value provider 选择一个非默认的provider lifecycle 定义生命周期 provisioner and connection 资源创建成功以后做一些事，比如注册啊，执行配置管理任务啊之类的  https://alex.dzyoba.com/blog/terraform-ansible/    </description>
+    </item>
+    
+    <item>
+      <title>terraform-aliyun</title>
+      <link>https://troy.wang/docs/compose/terraform/aliyun/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/compose/terraform/aliyun/</guid>
+      <description>阿里云常用资源terraform栗子 slb resource alicloud_slb main { name = var.name specification = var.spec == &amp;quot;None&amp;quot; ? null : var.spec address_type = var.vswitchid == &amp;quot;&amp;quot; ? &amp;quot;internet&amp;quot; : &amp;quot;intranet&amp;quot; vswitch_id = var.vswitchid == &amp;quot;&amp;quot; ? null : var.vswitchid delete_protection = var.delete_protection instance_charge_type = &amp;quot;PostPaid&amp;quot; } </description>
+    </item>
+    
+    <item>
+      <title>terraform数据类型</title>
+      <link>https://troy.wang/docs/compose/terraform/data-type/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/compose/terraform/data-type/</guid>
+      <description>terraform数据类型
+ string number bool list tuple map object null  </description>
+    </item>
+    
+    <item>
+      <title>terraform资料聚合</title>
+      <link>https://troy.wang/docs/compose/terraform/data-agg/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/compose/terraform/data-agg/</guid>
+      <description>terraform资料聚合
+各种链接入口  所有providers  阿里云provider   所有backends 内建函数  文章  Terraform tips &amp;amp; tricks: loops, if-statements, and gotchas  </description>
+    </item>
+    
+    <item>
+      <title>伪装者-S1</title>
+      <link>https://troy.wang/docs/linux/interview/interview-s1/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/linux/interview/interview-s1/</guid>
+      <description>1.给定一个nginx的日志access.log，请输出实时的qps.
+while true do datatime=`date +%d/%b/%Y:%T` a=`grep &amp;#34;$datatime&amp;#34; /var/log/nginx/access.log|wc -l` echo &amp;#34;$a&amp;#34; sleep 1 done 2.现有一个100G大小的日志文件，由于时间因素，只允许读取一次，但需要分别将含有两个pattern的行输出到两个文件中，请给出方案
+假设pattern1和pattern2
+awk &amp;#39;{ if ($0 ~ /pattern1/ ) print $0 &amp;gt;&amp;gt; &amp;#34;a&amp;#34;; if ( $0 ~ /pattern2/ ) print $0 &amp;gt;&amp;gt; &amp;#34;b&amp;#34;}&amp;#39; sample.txt 3.发现某IP无法访问，请给出尽可能详细的诊断方案，定位可能存在的问题。（目标机器宕机、近机房端网络中断、骨干网问题、或者其他可能的问题。）
+ ping目标机器 mtr/traceroute该IP，看到哪个节点有问题 网络路径上进行抓包tcpdump  4.uptime命令的输出中有load average: 0.24, 0.30, 0.24，请(1)解释这里load的数值的含义；(2)说明该数值多大时表示系统负载很高；(3)当系统负载高时，如何找出是什么因素导致负载高的。
+ uptime三个值分别为1分钟，5分钟和15分钟的平均负载 当负载值大于等于CPU核心数的时候，表明负载很高 使用top或者类似的工具（dstat），查看cpu相关指标  5.现在有一个大小约1g的源代码目录（如linux内核源码），需要从机器A上传输到机器B上。请给出两到三种方案，并陈述各方案的优劣。
+由于是源码文件，那么小问题一定是非常多的，最好先打包压缩，然后再使用scp或者rsync进行传输。
+ scp传输加密 rsync比较灵活，可以排除部分文件/目录 压缩完后再传输，利用计算资源节省网络带宽提升效率 也可以直接起一个python http server，然后对端下载  6.现有一个目录，其中有一百万(数量级)个的小文件，请给出两到三种删除该目录的方法，并陈述各方案的优劣。
+ rm -rf /data/dst这个方法可以，慢慢等，千万不要rm -rf /data/dst/*，小文件会列出来，参数列表过长，报错 find /data/dst -type f | xargs rm -f该方法能删除，但是会比较慢 ``find /data/dst -type f -delete`该方法能删除，比2快 mkdir /tmp/dst &amp;amp;&amp;amp; rsync --delete-before -a -H -v --progress --stats /tmp/dst/ /data/dst利用rsync的--delete选项来删除  </description>
+    </item>
+    
+    <item>
+      <title>正则小剧场</title>
+      <link>https://troy.wang/docs/n9e/code/regex/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/n9e/code/regex/</guid>
+      <description>正则小剧场 golang默认的正则，并非pcre正则，像正则断言的语法，golang就不支持
+这里提供一个正则测试网站: regex101
+零宽断言 零宽断言是匹配宽度为零，满足一定的条件/断言,通常用于查找在特定内容，该内容前或者后满足一定条件，但是匹配内容又不包括这些条件。
+零宽断言可以拆成两部分理解，零宽和断言。
+ 零宽: 代表满足条件，但是不作为匹配内容，看上去好像宽度为零 断言: 声明一个应该为真的事实，只有当断言为真时才会继续进行匹配  断言条件所在的位置(前后)以及断言条件是否取反(正负)，又可以将零宽断言分为四种: 负向先行/负向后发/先行/后发。
+具体表达式:
+ (?=表达式) (?!表达式) (?&amp;lt;表达式) (?&amp;lt;!表达式)  实践 提醒
+macos系统的grep不支持-P选项，一下均使用linux中的grep测试，可以使用在线正则regex101网站进行测试  样本 $ cat &amp;gt; /tmp/text &amp;lt;&amp;lt;-EOF &amp;gt; api01retcode000000 &amp;gt; api01retcode000001 &amp;gt; api01retcode000002 &amp;gt; api02retcode000000 &amp;gt; api02retcode000001 &amp;gt; api02retcode000002 &amp;gt; api03retcode000000 &amp;gt; api03retcode000001 &amp;gt; api02retcode000002 &amp;gt; EOF 先行正断言 # 先行正断言 retcode(?=000000)(\d{6}) $ grep -P &amp;#39;retcode(?=000000)(\d{6})&amp;#39; /tmp/text api01retcode000000 api02retcode000000 api03retcode000000 先行负断言 # 先行负断言 retcode(?=000000)(\d{6}) $ grep -P &amp;#39;retcode(?</description>
+    </item>
+    
+    <item>
+      <title>高级bash脚本编程</title>
+      <link>https://troy.wang/docs/linux/shell/abs/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/linux/shell/abs/</guid>
+      <description>高级bash脚本编程 变量 内部变量   $BASH
+  $EDITOR
+  $EUID 有效用户ID
+  $FUNCNAME 当前函数名
+  $GLOBIGNORE 文件名模式匹配列表，忽略
+  $GROUPS 当前用户所属的组
+  $HOME
+  $HOSTNAME
+  $HOSTTYPE 当前主机类型
+  $IFS 内部域分隔符，默认为空白(空格, 制表符,和换行符)，这个变量用来决定Bash在解释字符串时如何识别域, 或者单词边界.
+  $ echo $IFS | cat -vte $   $ bash -c &amp;#39;set w x y z; IFS=&amp;#34;+&amp;#34;; echo &amp;#34;$*&amp;#34;&amp;#39; w+x+y+z     $LINENO 记录自身在脚本中的行号</description>
+    </item>
+    
+  </channel>
+</rss>

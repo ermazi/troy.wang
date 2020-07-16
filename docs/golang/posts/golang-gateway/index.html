@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="golang实现简单网关  网关=反向代理&#43;负载均衡&#43;各种策略，技术实现也有多种多样，有基于nginx使用lua的实现，比如openresty、kong；也有基于zuul的通用网关；还有就是golang的网关，比如tyk。
+这篇文章主要是讲如何基于golang实现一个简单的网关。
+ 1. 预备 1.1. 准备两个后端web服务 启动两个后端web服务（代码） type RealServer struct { Addr string } func (r *RealServer) Run() { log.Println(&#34;start http server at &#34; &#43; r.Addr) mux := http.NewServeMux() mux.HandleFunc(&#34;/&#34;, r.EchoHandler) mux.HandleFunc(&#34;/base/error&#34;, r.ErrorHandler) mux.HandleFunc(&#34;/timeout&#34;, r.TimeoutHandler) server := &amp;http.Server{ Addr: r.Addr, WriteTimeout: time.Second * 3, Handler: mux, } go func() { log.Fatal(server.ListenAndServe()) }() } func (r *RealServer) EchoHandler(w http.ResponseWriter, req *http.Request) { upath := fmt.Sprintf(&#34;http://%s%s\n&#34;, r.Addr, req.URL.Path) realIP := fmt."><meta property="og:title" content="golang实现简单网关" />
+<meta property="og:description" content="golang实现简单网关  网关=反向代理&#43;负载均衡&#43;各种策略，技术实现也有多种多样，有基于nginx使用lua的实现，比如openresty、kong；也有基于zuul的通用网关；还有就是golang的网关，比如tyk。
+这篇文章主要是讲如何基于golang实现一个简单的网关。
+ 1. 预备 1.1. 准备两个后端web服务 启动两个后端web服务（代码） type RealServer struct { Addr string } func (r *RealServer) Run() { log.Println(&#34;start http server at &#34; &#43; r.Addr) mux := http.NewServeMux() mux.HandleFunc(&#34;/&#34;, r.EchoHandler) mux.HandleFunc(&#34;/base/error&#34;, r.ErrorHandler) mux.HandleFunc(&#34;/timeout&#34;, r.TimeoutHandler) server := &amp;http.Server{ Addr: r.Addr, WriteTimeout: time.Second * 3, Handler: mux, } go func() { log.Fatal(server.ListenAndServe()) }() } func (r *RealServer) EchoHandler(w http.ResponseWriter, req *http.Request) { upath := fmt.Sprintf(&#34;http://%s%s\n&#34;, r.Addr, req.URL.Path) realIP := fmt." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://troy.wang/docs/golang/posts/golang-gateway/" />
+
+<title>golang实现简单网关 | /bin/troy.wang</title>
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.6df681b0bb21155cba49f6078e3559216772d8e03e780d240c73ea21817ed5e5.css" integrity="sha256-bfaBsLshFVy6SfYHjjVZIWdy2OA&#43;eA0kDHPqIYF&#43;1eU=">
+<script defer src="/en.search.min.98150f84f15670dd15a0308be7f26d10d7474a77213c5fa4f8e042be3c8e8257.js" integrity="sha256-mBUPhPFWcN0VoDCL5/JtENdHSnchPF&#43;k&#43;OBCvjyOglc="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" class="hidden" id="menu-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  <nav>
+<h2 class="book-brand">
+  <a href="/"><span>/bin/troy.wang</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <span>Kubernetes</span>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/argo-rollouts-support-traefik/" class="">argo-rollouts之流量管理添加traefik支持</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/argo-rollouts/" class="">k8s灰度发布神器之argo-rollouts</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/coredns-in-production/" class="">在kubernetes生产环境coredns</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/run-microk8s-on-ubuntu/" class="">在ubuntu上运行microk8s</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/linux/" class="">linux</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/basic/" class="collapsed ">linux基础知识</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/monitor/" class="collapsed ">监控</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/interview/" class="collapsed ">伪装者</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/bigdata/" class="collapsed ">大数据</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/shell/" class="collapsed ">shell</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/n9e/" class="">n9e</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/" class="collapsed ">n9e源码学golang</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/compose/" class="">编排</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/compose/ansible/" class="collapsed ">ansible</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/compose/terraform/" class="collapsed ">terraform</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <span>golang</span>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/golang/posts/golang-gateway/" class="active">golang实现简单网关</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/golang/posts/circuit-breaker/" class="">hytrix-go</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/about-me/" class="">关于我</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+  </ul>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="/posts/" >
+        博客
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>golang实现简单网关</strong>
+
+  <label for="toc-control">
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+  </label>
+</div>
+
+
+  
+    <input type="checkbox" class="hidden" id="toc-control" />
+    <aside class="hidden clearfix">
+      
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-预备">1. 预备</a>
+      <ul>
+        <li><a href="#11-准备两个后端web服务">1.1. 准备两个后端web服务</a></li>
+        <li><a href="#12-访问工具">1.2. 访问工具</a></li>
+      </ul>
+    </li>
+    <li><a href="#2-反向代理">2. 反向代理</a>
+      <ul>
+        <li><a href="#21-单后端target反向代理">2.1. 单后端（target）反向代理</a></li>
+        <li><a href="#22-分析反向代理代码并添加修改response内容">2.2. 分析反向代理代码，并添加修改response内容</a></li>
+        <li><a href="#23-支持多个后端服务器">2.3. 支持多个后端服务器</a></li>
+      </ul>
+    </li>
+    <li><a href="#3-负载均衡">3. 负载均衡</a>
+      <ul>
+        <li><a href="#31-负载均衡算法">3.1. 负载均衡算法</a></li>
+        <li><a href="#32-通用接口工厂模式">3.2. 通用接口/工厂模式</a></li>
+        <li><a href="#33-支持负载均衡算法的反向代理实现">3.3. 支持负载均衡算法的反向代理实现</a></li>
+      </ul>
+    </li>
+    <li><a href="#4-中间件">4. 中间件</a>
+      <ul>
+        <li><a href="#41-基于数组的中间件实现">4.1. 基于数组的中间件实现</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+    </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h1 id="golang实现简单网关">golang实现简单网关</h1>
+<blockquote>
+<p>网关=反向代理+负载均衡+各种策略，技术实现也有多种多样，有基于nginx使用lua的实现，比如openresty、kong；也有基于zuul的通用网关；还有就是golang的网关，比如tyk。</p>
+<p>这篇文章主要是讲如何基于golang实现一个简单的网关。</p>
+</blockquote>
+<h2 id="1-预备">1. 预备</h2>
+<h3 id="11-准备两个后端web服务">1.1. 准备两个后端web服务</h3>
+<details >
+  <summary>启动两个后端web服务（代码）</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">RealServer</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">Addr</span> <span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RealServer</span>) <span style="color:#a6e22e">Run</span>() {
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;start http server at &#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Addr</span>)
+	<span style="color:#a6e22e">mux</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">NewServeMux</span>()
+	<span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/&#34;</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">EchoHandler</span>)
+	<span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/base/error&#34;</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">ErrorHandler</span>)
+	<span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">HandleFunc</span>(<span style="color:#e6db74">&#34;/timeout&#34;</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">TimeoutHandler</span>)
+
+	<span style="color:#a6e22e">server</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Server</span>{
+		<span style="color:#a6e22e">Addr</span>:         <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Addr</span>,
+		<span style="color:#a6e22e">WriteTimeout</span>: <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">3</span>,
+		<span style="color:#a6e22e">Handler</span>:      <span style="color:#a6e22e">mux</span>,
+	}
+
+	<span style="color:#66d9ef">go</span> <span style="color:#66d9ef">func</span>() {
+		<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">server</span>.<span style="color:#a6e22e">ListenAndServe</span>())
+	}()
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RealServer</span>) <span style="color:#a6e22e">EchoHandler</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+	<span style="color:#a6e22e">upath</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;http://%s%s\n&#34;</span>, <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Addr</span>, <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Path</span>)
+	<span style="color:#a6e22e">realIP</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;RemoteAddr=%s,X-Forwarded-For=%v,X-Real-Ip=%v\n&#34;</span>, <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">RemoteAddr</span>, <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#e6db74">&#34;X-Forwarded-For&#34;</span>), <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#e6db74">&#34;X-Real-Ip&#34;</span>))
+	<span style="color:#a6e22e">header</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;headers =%v\n&#34;</span>, <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Header</span>)
+	<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">upath</span>)
+	<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">realIP</span>)
+	<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">header</span>)
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RealServer</span>) <span style="color:#a6e22e">ErrorHandler</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+	<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">WriteHeader</span>(<span style="color:#ae81ff">500</span>)
+	<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;error handler&#34;</span>)
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RealServer</span>) <span style="color:#a6e22e">TimeoutHandler</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">6</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
+	<span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">WriteHeader</span>(<span style="color:#ae81ff">200</span>)
+	<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;timeout handler&#34;</span>)
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+	<span style="color:#a6e22e">rs1</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">RealServer</span>{<span style="color:#a6e22e">Addr</span>: <span style="color:#e6db74">&#34;127.0.0.1:2003&#34;</span>}
+	<span style="color:#a6e22e">rs1</span>.<span style="color:#a6e22e">Run</span>()
+	<span style="color:#a6e22e">rs2</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">RealServer</span>{<span style="color:#a6e22e">Addr</span>: <span style="color:#e6db74">&#34;127.0.0.1:2004&#34;</span>}
+	<span style="color:#a6e22e">rs2</span>.<span style="color:#a6e22e">Run</span>()
+
+	<span style="color:#a6e22e">quit</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Signal</span>)
+	<span style="color:#a6e22e">signal</span>.<span style="color:#a6e22e">Notify</span>(<span style="color:#a6e22e">quit</span>, <span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">SIGINT</span>, <span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">SIGTERM</span>)
+	<span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">quit</span>
+}
+</code></pre></div>
+  </div>
+</details>
+
+<h3 id="12-访问工具">1.2. 访问工具</h3>
+<p>这里使用命令行工具进行测试</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">curl -v http://localhost:2002/base
+</code></pre></div><h2 id="2-反向代理">2. 反向代理</h2>
+<h3 id="21-单后端target反向代理">2.1. 单后端（target）反向代理</h3>
+<details >
+  <summary>具体代码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;log&#34;</span>
+	<span style="color:#e6db74">&#34;net/http&#34;</span>
+	<span style="color:#e6db74">&#34;net/http/httputil&#34;</span>
+	<span style="color:#e6db74">&#34;net/url&#34;</span>
+)
+
+<span style="color:#66d9ef">var</span> (
+	<span style="color:#a6e22e">addr</span> = <span style="color:#e6db74">&#34;127.0.0.1:2002&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>()  {
+	<span style="color:#a6e22e">rsUrl</span>, <span style="color:#a6e22e">_</span><span style="color:#f92672">:=</span><span style="color:#a6e22e">url</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;http://127.0.0.1:2003/base&#34;</span>)
+	<span style="color:#a6e22e">reversePorxy</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">httputil</span>.<span style="color:#a6e22e">NewSingleHostReverseProxy</span>(<span style="color:#a6e22e">rsUrl</span>)
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Starting Httpserver at &#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">addr</span>)
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#a6e22e">addr</span>, <span style="color:#a6e22e">reversePorxy</span>))
+}
+</code></pre></div><p>直接使用基础库httputil提供的<code>NewSingleHostReverseProxy</code>即可，返回的<code>reverseProxy</code>对象实现了<code>serveHttp</code>方法，因此可以直接作为handler。</p>
+
+  </div>
+</details>
+
+<h3 id="22-分析反向代理代码并添加修改response内容">2.2. 分析反向代理代码，并添加修改response内容</h3>
+<details >
+  <summary>具体代码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+
+<span style="color:#f92672">import</span> (
+	<span style="color:#e6db74">&#34;bytes&#34;</span>
+	<span style="color:#e6db74">&#34;fmt&#34;</span>
+	<span style="color:#e6db74">&#34;io/ioutil&#34;</span>
+	<span style="color:#e6db74">&#34;log&#34;</span>
+	<span style="color:#e6db74">&#34;net/http&#34;</span>
+	<span style="color:#e6db74">&#34;net/http/httputil&#34;</span>
+	<span style="color:#e6db74">&#34;net/url&#34;</span>
+	<span style="color:#e6db74">&#34;strings&#34;</span>
+)
+
+<span style="color:#66d9ef">var</span> (
+	<span style="color:#a6e22e">addr</span> = <span style="color:#e6db74">&#34;127.0.0.1:2002&#34;</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>()  {
+	<span style="color:#a6e22e">rsUrl</span>, <span style="color:#a6e22e">_</span><span style="color:#f92672">:=</span><span style="color:#a6e22e">url</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#e6db74">&#34;http://127.0.0.1:2003/base&#34;</span>)
+	<span style="color:#a6e22e">reversePorxy</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewSingleHostReverseProxy</span>(<span style="color:#a6e22e">rsUrl</span>)
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Starting httpserver at &#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">addr</span>)
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#a6e22e">addr</span>, <span style="color:#a6e22e">reversePorxy</span>))
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewSingleHostReverseProxy</span>(<span style="color:#a6e22e">target</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">url</span>.<span style="color:#a6e22e">URL</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">httputil</span>.<span style="color:#a6e22e">ReverseProxy</span> {
+	<span style="color:#a6e22e">targetQuery</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">target</span>.<span style="color:#a6e22e">RawQuery</span>
+	<span style="color:#a6e22e">director</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+		<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Scheme</span> = <span style="color:#a6e22e">target</span>.<span style="color:#a6e22e">Scheme</span>
+		<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Host</span> = <span style="color:#a6e22e">target</span>.<span style="color:#a6e22e">Host</span>
+		<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Path</span> = <span style="color:#a6e22e">singleJoiningSlash</span>(<span style="color:#a6e22e">target</span>.<span style="color:#a6e22e">Path</span>, <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Path</span>)
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">targetQuery</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">RawQuery</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+			<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">RawQuery</span> = <span style="color:#a6e22e">targetQuery</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">RawQuery</span>
+		} <span style="color:#66d9ef">else</span> {
+			<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">RawQuery</span> = <span style="color:#a6e22e">targetQuery</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;&amp;&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">RawQuery</span>
+		}
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Header</span>[<span style="color:#e6db74">&#34;User-Agent&#34;</span>]; !<span style="color:#a6e22e">ok</span> {
+			<span style="color:#75715e">// explicitly disable User-Agent so it&#39;s not set to default value
+</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;User-Agent&#34;</span>, <span style="color:#e6db74">&#34;&#34;</span>)
+		}
+		<span style="color:#75715e">// add when the reverseproxy is the first rp
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;X-Real-Ip&#34;</span>, <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">RemoteAddr</span>, <span style="color:#e6db74">&#34;:&#34;</span>)[<span style="color:#ae81ff">0</span>])
+	}
+
+	<span style="color:#a6e22e">modifyFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">res</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Response</span>) <span style="color:#66d9ef">error</span> {
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">StatusCode</span> <span style="color:#f92672">!=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span> {
+		    <span style="color:#a6e22e">oldPayLoad</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">ReadAll</span>(<span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Body</span>)
+
+		    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		    	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	    	}
+	    	<span style="color:#a6e22e">newPayLoad</span> <span style="color:#f92672">:=</span> []byte(<span style="color:#e6db74">&#34;hello &#34;</span> <span style="color:#f92672">+</span> string(<span style="color:#a6e22e">oldPayLoad</span>))
+
+	    	<span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Body</span> = <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">NopCloser</span>(<span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">NewBuffer</span>(<span style="color:#a6e22e">newPayLoad</span>))
+	    	<span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">ContentLength</span> = int64(len(<span style="color:#a6e22e">newPayLoad</span>))
+		    <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;Content-Length&#34;</span>,<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprint</span>(len(<span style="color:#a6e22e">newPayLoad</span>)))
+		}
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">httputil</span>.<span style="color:#a6e22e">ReverseProxy</span>{<span style="color:#a6e22e">Director</span>: <span style="color:#a6e22e">director</span>, <span style="color:#a6e22e">ModifyResponse</span>: <span style="color:#a6e22e">modifyFunc</span>}
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">singleJoiningSlash</span>(<span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">string</span> {
+	<span style="color:#a6e22e">aslash</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">HasSuffix</span>(<span style="color:#a6e22e">a</span>, <span style="color:#e6db74">&#34;/&#34;</span>)
+	<span style="color:#a6e22e">bslash</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">HasPrefix</span>(<span style="color:#a6e22e">b</span>, <span style="color:#e6db74">&#34;/&#34;</span>)
+	<span style="color:#66d9ef">switch</span> {
+	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">aslash</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">bslash</span>:
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">b</span>[<span style="color:#ae81ff">1</span>:]
+	<span style="color:#66d9ef">case</span> !<span style="color:#a6e22e">aslash</span> <span style="color:#f92672">&amp;&amp;</span> !<span style="color:#a6e22e">bslash</span>:
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;/&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">b</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">b</span>
+}
+</code></pre></div>
+  </div>
+</details>
+
+<p><code>director</code>中定义回调函数，入参为<code>*http.Request</code>，决定如何构造向后端的请求，比如host是否向后传递，是否进行url重写，对于header的处理，后端target的选择等，都可以在这里完成。</p>
+<p><code>director</code>在这里具体做了：</p>
+<ol>
+<li>根据后端target，构造到后端请求的url</li>
+<li>选择性传递必要的header</li>
+<li>设置代理相关的header，比如<code>X-Forwarded-For</code>、<code>X-Real-Ip</code>
+<ol>
+<li><code>X-Forwarded-For</code>记录经过的所有代理，以<code>proxyIp01, proxyIp02, proxyIp03</code>的格式记录，由于是追加，可能被篡改，当然，如果第一代理以覆盖该头的方式进行记录，也是可信的</li>
+<li><code>X-Real-Ip</code>用于记录客户端IP，一般放在第一代理上，用于记录客户端的来源公网IP，可信</li>
+</ol>
+</li>
+</ol>
+<p><code>modifyResponse</code>中定义回调函数，入参为<code>*http.Response</code>，用于修改响应的信息，比如响应的Body，响应的Header等信息。</p>
+<p>最终依旧是返回一个<code>ReverseProxy</code>，然后将这个对象作为handler传入即可。</p>
+<h3 id="23-支持多个后端服务器">2.3. 支持多个后端服务器</h3>
+<p>参考2.2 中的<code>NewSingleHostReverseProxy</code>，只需要实现一个类似的、支持多targets的方法即可，具体实现见后面。</p>
+<h2 id="3-负载均衡">3. 负载均衡</h2>
+<p>作为一个网关服务，在上面2.3的基础上，需要支持必要的负载均衡策略，比如：</p>
+<ul>
+<li>随机</li>
+<li>轮询</li>
+<li>加权轮询</li>
+<li>一致性hash</li>
+</ul>
+<h3 id="31-负载均衡算法">3.1. 负载均衡算法</h3>
+<h4 id="311-随机">3.1.1. 随机</h4>
+<p>随便random一个整数作为索引，然后取对应的地址即可，实现比较简单。</p>
+<details >
+  <summary>具体代码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">RandomN</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">rss</span> []<span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RandomN</span>) <span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">params</span> <span style="color:#f92672">...</span><span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">error</span> {
+	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">params</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;param length should be one&#34;</span>)
+	}
+
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">rss</span> = append(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">rss</span>, <span style="color:#a6e22e">params</span>[<span style="color:#ae81ff">0</span>])
+
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RandomN</span>) <span style="color:#a6e22e">Next</span>() <span style="color:#66d9ef">string</span> {
+	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">rss</span>)	<span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;&#34;</span>
+	}
+
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">rss</span>[<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Intn</span>(len(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">rss</span>))]
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RandomN</span>) <span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Next</span>(), <span style="color:#66d9ef">nil</span>
+}
+</code></pre></div>
+  </div>
+</details>
+
+<h4 id="312-轮询">3.1.2. 轮询</h4>
+<p>使用<code>curIndex</code>进行累加计数，一旦超过rss数组的长度，则重置。</p>
+<details >
+  <summary>具体代码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">RR</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">curIndex</span> <span style="color:#66d9ef">int</span>
+	<span style="color:#a6e22e">rss</span> []<span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RR</span>) <span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">params</span> <span style="color:#f92672">...</span><span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">error</span> {
+	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">params</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">1</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;param length should be one&#34;</span>)
+	}
+
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">rss</span> = append(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">rss</span>, <span style="color:#a6e22e">params</span>[<span style="color:#ae81ff">0</span>])
+
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RR</span>) <span style="color:#a6e22e">Next</span>() <span style="color:#66d9ef">string</span> {
+	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">rss</span>)	<span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;&#34;</span>
+	}
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">curIndex</span> <span style="color:#f92672">==</span> len(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">rss</span>) {
+		<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">curIndex</span> = <span style="color:#ae81ff">0</span>
+	}
+
+	<span style="color:#a6e22e">node</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">rss</span>[<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">curIndex</span>]
+
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">curIndex</span><span style="color:#f92672">++</span>
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">node</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">RR</span>) <span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Next</span>(), <span style="color:#66d9ef">nil</span>
+}
+</code></pre></div>
+  </div>
+</details>
+
+<h4 id="313-加权轮询">3.1.3. 加权轮询</h4>
+<p>轮询带权重，如果使用计数递减的方式，如果权重是<code>5,1,1</code>那么后端rs依次为<code>a,a,a,a,a,b,c,a,a,a,a...</code>，其中a后端会瞬间压力过大；参考nginx内部的加权轮询，或者应该称之为平滑加权轮询，思路是：</p>
+<p>后端真实节点包含三个权重：</p>
+<ul>
+<li>本身权重weight —— 设置的权重</li>
+<li>有效权重effectiveWeight —— 根据后端节点健康状态动态变化，当异常时，减一；当正常时，加一，最多到weight值</li>
+<li>当前权重curWeight —— 初始值为weight，计算时<code>curWeight += effectiveWeight</code>，如果<code>curWeight</code>最大，则被选中，然后<code>curWeight -= total</code></li>
+</ul>
+<p>操作步骤：</p>
+<ol>
+<li>计算curWeight</li>
+<li>选取最大curWeight的节点</li>
+<li>重新计算curWeight</li>
+</ol>
+<details >
+  <summary>具体代码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">WeightedRR</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">rss</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">WeightedNode</span>
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">WeightedNode</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">addr</span> <span style="color:#66d9ef">string</span>
+	<span style="color:#a6e22e">weight</span> <span style="color:#66d9ef">int</span>
+	<span style="color:#a6e22e">curWeight</span> <span style="color:#66d9ef">int</span>
+	<span style="color:#a6e22e">effectiveWeight</span> <span style="color:#66d9ef">int</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">WeightedRR</span>) <span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">params</span> <span style="color:#f92672">...</span><span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">error</span> {
+	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">params</span>) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">2</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;param length should be two&#34;</span>)
+	}
+
+	<span style="color:#a6e22e">addr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">params</span>[<span style="color:#ae81ff">0</span>]
+	<span style="color:#a6e22e">weight</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">ParseInt</span>(<span style="color:#a6e22e">params</span>[<span style="color:#ae81ff">1</span>], <span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">64</span>)
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+	}
+
+	<span style="color:#a6e22e">node</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">WeightedNode</span>{
+		<span style="color:#a6e22e">addr</span>:            <span style="color:#a6e22e">addr</span>,
+		<span style="color:#a6e22e">weight</span>:          int(<span style="color:#a6e22e">weight</span>),
+		<span style="color:#a6e22e">curWeight</span>:       int(<span style="color:#a6e22e">weight</span>),
+		<span style="color:#a6e22e">effectiveWeight</span>: int(<span style="color:#a6e22e">weight</span>),
+	}
+
+	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">rss</span> = append(<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">rss</span>, <span style="color:#a6e22e">node</span>)
+
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">WeightedRR</span>) <span style="color:#a6e22e">Next</span>() <span style="color:#66d9ef">string</span> {
+	<span style="color:#75715e">// 平滑加权轮询 --&gt; 1 计算total， 2 变更临时权重 3. 选择最大临时权重 4。 变更临时权重
+</span><span style="color:#75715e"></span>	<span style="color:#a6e22e">total</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
+	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">best</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">WeightedNode</span>
+
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">node</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">rss</span> {
+		<span style="color:#a6e22e">n</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">node</span>
+
+		<span style="color:#a6e22e">total</span> <span style="color:#f92672">+=</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">effectiveWeight</span>
+
+		<span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">curWeight</span> <span style="color:#f92672">+=</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">effectiveWeight</span>
+
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">best</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">n</span>.<span style="color:#a6e22e">curWeight</span> &gt; <span style="color:#a6e22e">best</span>.<span style="color:#a6e22e">curWeight</span> {
+			<span style="color:#a6e22e">best</span> = <span style="color:#a6e22e">n</span>
+		}
+	}
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">best</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;&#34;</span>
+	}
+
+	<span style="color:#a6e22e">best</span>.<span style="color:#a6e22e">curWeight</span> <span style="color:#f92672">-=</span> <span style="color:#a6e22e">total</span>
+
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">best</span>.<span style="color:#a6e22e">addr</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">WeightedRR</span>) <span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Next</span>(), <span style="color:#66d9ef">nil</span>
+}
+</code></pre></div>
+  </div>
+</details>
+
+<h4 id="314-一致性hash">3.1.4. 一致性hash</h4>
+<p>一致性hash算法，主要是用于分布式cache热点/命中问题；这里用于基于某key的hash值，路由到固定后端，但是只能是<strong>基本满足</strong>流量绑定，一旦后端目标节点故障，会自动平移到环上最近的那么个节点。</p>
+<p>实现：</p>
+<ul>
+<li>
+<p>首先存在一个环，环上的每个点都能被选择的hash函数映射到</p>
+</li>
+<li>
+<p>然后将后端真实节点+序号（副本数）映射到环上</p>
+</li>
+<li>
+<p>当请求进来的时候，使用某<strong>特定组成的key</strong>代入hash函数计算得到一个位置</p>
+<ul>
+<li>如果key是由url组成，那就是<strong>url hash</strong></li>
+<li>如果key是由remoteIp组成，那么就是<strong>IP hash</strong></li>
+</ul>
+</li>
+<li>
+<p>使用<strong>二分查找</strong>，找到其在环上的下一个<strong>节点</strong></p>
+</li>
+</ul>
+<details >
+  <summary>具体代码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Keys</span> []<span style="color:#66d9ef">uint32</span>
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">k</span> <span style="color:#a6e22e">Keys</span>) <span style="color:#a6e22e">Less</span>(<span style="color:#a6e22e">i</span>,  <span style="color:#a6e22e">j</span> <span style="color:#66d9ef">int</span>) <span style="color:#66d9ef">bool</span> {
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">k</span>[<span style="color:#a6e22e">i</span>] &lt; <span style="color:#a6e22e">k</span>[<span style="color:#a6e22e">j</span>]
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">k</span> <span style="color:#a6e22e">Keys</span>) <span style="color:#a6e22e">Swap</span>(<span style="color:#a6e22e">i</span>, <span style="color:#a6e22e">j</span> <span style="color:#66d9ef">int</span>)  {
+	<span style="color:#a6e22e">k</span>[<span style="color:#a6e22e">i</span>], <span style="color:#a6e22e">k</span>[<span style="color:#a6e22e">j</span>] = <span style="color:#a6e22e">k</span>[<span style="color:#a6e22e">j</span>], <span style="color:#a6e22e">k</span>[<span style="color:#a6e22e">i</span>]
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">k</span> <span style="color:#a6e22e">Keys</span>) <span style="color:#a6e22e">Len</span>() <span style="color:#66d9ef">int</span> {
+	<span style="color:#66d9ef">return</span> len(<span style="color:#a6e22e">k</span>)
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">ConsistentHash</span> <span style="color:#66d9ef">struct</span> {
+	<span style="color:#a6e22e">mux</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">RWMutex</span>
+	<span style="color:#a6e22e">hash</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">data</span> []<span style="color:#66d9ef">byte</span>) <span style="color:#66d9ef">uint32</span>
+	<span style="color:#a6e22e">replicas</span> <span style="color:#66d9ef">int</span>
+	<span style="color:#a6e22e">keys</span> <span style="color:#a6e22e">Keys</span>
+	<span style="color:#a6e22e">hashMap</span> <span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">uint32</span>]<span style="color:#66d9ef">string</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewConsistentHash</span>(<span style="color:#a6e22e">replicas</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">fn</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">data</span> []<span style="color:#66d9ef">byte</span>) <span style="color:#66d9ef">uint32</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">ConsistentHash</span> {
+	<span style="color:#a6e22e">m</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">ConsistentHash</span>{
+		<span style="color:#a6e22e">hash</span>:     <span style="color:#a6e22e">fn</span>,
+		<span style="color:#a6e22e">replicas</span>: <span style="color:#a6e22e">replicas</span>,
+		<span style="color:#a6e22e">hashMap</span>:  make((<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">uint32</span>]<span style="color:#66d9ef">string</span>)),
+	}
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">hash</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> {
+		<span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">hash</span> = <span style="color:#a6e22e">crc32</span>.<span style="color:#a6e22e">ChecksumIEEE</span>
+	}
+
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">m</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ConsistentHash</span>) <span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">params</span> <span style="color:#f92672">...</span><span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">error</span> {
+	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">params</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#e6db74">&#34;param len 1 at least&#34;</span>)
+	}
+	<span style="color:#a6e22e">addr</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">params</span>[<span style="color:#ae81ff">0</span>]
+	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">Lock</span>()
+	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">mux</span>.<span style="color:#a6e22e">Unlock</span>()
+
+	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">replicas</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+		<span style="color:#a6e22e">hash</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">hash</span>([]byte(<span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">Itoa</span>(<span style="color:#a6e22e">i</span>) <span style="color:#f92672">+</span> <span style="color:#a6e22e">addr</span>))
+		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">keys</span> = append(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">keys</span>, <span style="color:#a6e22e">hash</span>)
+		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">hashMap</span>[<span style="color:#a6e22e">hash</span>] = <span style="color:#a6e22e">addr</span>
+	}
+
+	<span style="color:#a6e22e">sort</span>.<span style="color:#a6e22e">Sort</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">keys</span>)
+	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ConsistentHash</span>) <span style="color:#a6e22e">IsEmpty</span>() <span style="color:#66d9ef">bool</span> {
+	<span style="color:#66d9ef">return</span> len(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">keys</span>) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">ConsistentHash</span>) <span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">IsEmpty</span>() {
+		<span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;nodes empty&#34;</span>)
+		<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;&#34;</span>, <span style="color:#a6e22e">err</span>
+	}
+
+	<span style="color:#a6e22e">hash</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">hash</span>([]byte(<span style="color:#a6e22e">key</span>))
+
+	<span style="color:#a6e22e">idx</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">sort</span>.<span style="color:#a6e22e">Search</span>(len(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">keys</span>), <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">i</span> <span style="color:#66d9ef">int</span>) <span style="color:#66d9ef">bool</span> {
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">keys</span>[<span style="color:#a6e22e">i</span>] <span style="color:#f92672">&gt;=</span> <span style="color:#a6e22e">hash</span>
+	})
+
+	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">idx</span> <span style="color:#f92672">==</span> len(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">keys</span>) {
+		<span style="color:#a6e22e">idx</span> = <span style="color:#ae81ff">0</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">hashMap</span>[<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">keys</span>[<span style="color:#a6e22e">idx</span>]], <span style="color:#66d9ef">nil</span>
+}
+</code></pre></div>
+  </div>
+</details>
+
+<h3 id="32-通用接口工厂模式">3.2. 通用接口/工厂模式</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">LoadBalanceStrategy</span> <span style="color:#66d9ef">interface</span> {
+	<span style="color:#a6e22e">Add</span>(<span style="color:#f92672">...</span><span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">error</span>
+	<span style="color:#a6e22e">Get</span>(<span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>)
+}
+</code></pre></div><p>每一种不同的负载均衡算法，只需要实现添加以及获取的接口即可。</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">LbType</span> <span style="color:#66d9ef">int</span>
+
+<span style="color:#66d9ef">const</span> (
+	<span style="color:#a6e22e">LbRandom</span> <span style="color:#a6e22e">LbType</span> = <span style="color:#66d9ef">iota</span>
+	<span style="color:#a6e22e">LbRoundRobin</span>
+	<span style="color:#a6e22e">LbWeightRoundRobin</span>
+	<span style="color:#a6e22e">LbConsistentHash</span>
+)
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">LoadBanlanceFactory</span>(<span style="color:#a6e22e">lbType</span> <span style="color:#a6e22e">LbType</span>) <span style="color:#a6e22e">LoadBalanceStrategy</span> {
+	<span style="color:#66d9ef">switch</span> <span style="color:#a6e22e">lbType</span> {
+	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">LbRandom</span>:
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">RandomN</span>{}
+	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">LbConsistentHash</span>:
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">NewConsistentHash</span>(<span style="color:#ae81ff">10</span>, <span style="color:#66d9ef">nil</span>)
+	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">LbRoundRobin</span>:
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">RR</span>{}
+	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">LbWeightRoundRobin</span>:
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">WeightedRR</span>{}
+	<span style="color:#66d9ef">default</span>:
+		<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">RR</span>{}
+	}
+}
+</code></pre></div><p>然后使用工厂方法，根据传入的参数，决定使用哪种负载均衡策略。</p>
+<h3 id="33-支持负载均衡算法的反向代理实现">3.3. 支持负载均衡算法的反向代理实现</h3>
+<ul>
+<li>使用<code>LoadBanlanceFactory</code>工厂函数，传入负载均衡类型，获取负载均衡对象</li>
+<li>添加后端真实节点</li>
+<li>然后初始化<code>NewMultiTargetsReverseProxy</code>，在director回调函数中，根据负载均衡策略获取要请求的后端真实节点</li>
+<li>剩下的逻辑同<code>2.2</code></li>
+</ul>
+<details >
+  <summary>具体代码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewMultiTargetsReverseProxy</span>(<span style="color:#a6e22e">lb</span> <span style="color:#a6e22e">lb_strategy</span>.<span style="color:#a6e22e">LoadBalanceStrategy</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">httputil</span>.<span style="color:#a6e22e">ReverseProxy</span> {
+	<span style="color:#a6e22e">director</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+		<span style="color:#a6e22e">remoteIP</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">Split</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">RemoteAddr</span>, <span style="color:#e6db74">&#34;:&#34;</span>)[<span style="color:#ae81ff">0</span>]
+		<span style="color:#a6e22e">nextAddr</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">lb</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">remoteIP</span>)
+
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#e6db74">&#34;get next addr fail&#34;</span>)
+		}
+
+		<span style="color:#a6e22e">target</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">url</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#a6e22e">nextAddr</span>)
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+			<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">err</span>)
+		}
+		<span style="color:#a6e22e">targetQuery</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">target</span>.<span style="color:#a6e22e">RawQuery</span>
+		<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Scheme</span> = <span style="color:#a6e22e">target</span>.<span style="color:#a6e22e">Scheme</span>
+		<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Host</span> = <span style="color:#a6e22e">target</span>.<span style="color:#a6e22e">Host</span>
+		<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Path</span> = <span style="color:#a6e22e">singleJoiningSlash</span>(<span style="color:#a6e22e">target</span>.<span style="color:#a6e22e">Path</span>, <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">Path</span>)
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">targetQuery</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">RawQuery</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+			<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">RawQuery</span> = <span style="color:#a6e22e">targetQuery</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">RawQuery</span>
+		} <span style="color:#66d9ef">else</span> {
+			<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">RawQuery</span> = <span style="color:#a6e22e">targetQuery</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;&amp;&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">URL</span>.<span style="color:#a6e22e">RawQuery</span>
+		}
+		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Header</span>[<span style="color:#e6db74">&#34;User-Agent&#34;</span>]; !<span style="color:#a6e22e">ok</span> {
+			<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;User-Agent&#34;</span>, <span style="color:#e6db74">&#34;user-agent&#34;</span>)
+		}
+	}
+
+	<span style="color:#a6e22e">modifyFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">resp</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Response</span>) <span style="color:#66d9ef">error</span> {
+		<span style="color:#75715e">//请求以下命令：curl &#39;http://127.0.0.1:2002/error&#39;
+</span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">StatusCode</span> <span style="color:#f92672">!=</span> <span style="color:#ae81ff">200</span> {
+			<span style="color:#75715e">//获取内容
+</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">oldPayload</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">ReadAll</span>(<span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Body</span>)
+			<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+				<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+			}
+			<span style="color:#75715e">//追加内容
+</span><span style="color:#75715e"></span>			<span style="color:#a6e22e">newPayload</span> <span style="color:#f92672">:=</span> []byte(<span style="color:#e6db74">&#34;StatusCode error:&#34;</span> <span style="color:#f92672">+</span> string(<span style="color:#a6e22e">oldPayload</span>))
+			<span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Body</span> = <span style="color:#a6e22e">ioutil</span>.<span style="color:#a6e22e">NopCloser</span>(<span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">NewBuffer</span>(<span style="color:#a6e22e">newPayload</span>))
+			<span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">ContentLength</span> = int64(len(<span style="color:#a6e22e">newPayload</span>))
+			<span style="color:#a6e22e">resp</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;Content-Length&#34;</span>, <span style="color:#a6e22e">strconv</span>.<span style="color:#a6e22e">FormatInt</span>(int64(len(<span style="color:#a6e22e">newPayload</span>)), <span style="color:#ae81ff">10</span>))
+		}
+		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+	}
+
+	<span style="color:#a6e22e">errFunc</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">w</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
+		<span style="color:#75715e">//todo 如果是权重的负载则调整临时权重
+</span><span style="color:#75715e"></span>		<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">w</span>, <span style="color:#e6db74">&#34;ErrorHandler error:&#34;</span><span style="color:#f92672">+</span><span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>(), <span style="color:#ae81ff">500</span>)
+	}
+
+	<span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">httputil</span>.<span style="color:#a6e22e">ReverseProxy</span>{<span style="color:#a6e22e">Director</span>: <span style="color:#a6e22e">director</span>, <span style="color:#a6e22e">Transport</span>: <span style="color:#a6e22e">transport</span>, <span style="color:#a6e22e">ModifyResponse</span>: <span style="color:#a6e22e">modifyFunc</span>, <span style="color:#a6e22e">ErrorHandler</span>: <span style="color:#a6e22e">errFunc</span>}
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">singleJoiningSlash</span>(<span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span> <span style="color:#66d9ef">string</span>) <span style="color:#66d9ef">string</span> {
+	<span style="color:#a6e22e">aslash</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">HasSuffix</span>(<span style="color:#a6e22e">a</span>, <span style="color:#e6db74">&#34;/&#34;</span>)
+	<span style="color:#a6e22e">bslash</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">HasPrefix</span>(<span style="color:#a6e22e">b</span>, <span style="color:#e6db74">&#34;/&#34;</span>)
+	<span style="color:#66d9ef">switch</span> {
+	<span style="color:#66d9ef">case</span> <span style="color:#a6e22e">aslash</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">bslash</span>:
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">b</span>[<span style="color:#ae81ff">1</span>:]
+	<span style="color:#66d9ef">case</span> !<span style="color:#a6e22e">aslash</span> <span style="color:#f92672">&amp;&amp;</span> !<span style="color:#a6e22e">bslash</span>:
+		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;/&#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">b</span>
+	}
+	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">b</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>()  {
+	<span style="color:#a6e22e">rb</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">lb_strategy</span>.<span style="color:#a6e22e">LoadBanlanceFactory</span>(<span style="color:#a6e22e">lb_strategy</span>.<span style="color:#a6e22e">LbConsistentHash</span>)
+	<span style="color:#a6e22e">rb</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#e6db74">&#34;http://127.0.0.1:2003/base&#34;</span>)
+	<span style="color:#a6e22e">rb</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#e6db74">&#34;http://127.0.0.1:2004/base&#34;</span>)
+	<span style="color:#a6e22e">rb</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#e6db74">&#34;http://127.0.0.1:2005/base&#34;</span>)
+
+	<span style="color:#a6e22e">proxy</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">NewMultiTargetsReverseProxy</span>(<span style="color:#a6e22e">rb</span>)
+
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Starting httpserver at &#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">addr</span>)
+	<span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#a6e22e">addr</span>, <span style="color:#a6e22e">proxy</span>))
+}
+</code></pre></div>
+  </div>
+</details>
+
+<h2 id="4-中间件">4. 中间件</h2>
+<p>作为网关，中间件必不可少，这类包括请求响应的模式，一般称作洋葱模式，每一层都是中间件，一层层进去，然后一层层出来。</p>
+<p>中间件的实现一般有两种，一种是使用数组，然后配合index计数；一种是链式调用。</p>
+<h3 id="41-基于数组的中间件实现">4.1. 基于数组的中间件实现</h3>
+<ol>
+<li><code>NewSliceRouterHandler</code> 获取<code>SliceRouterHandler</code>对象，该对象实现了<code>Hanlder</code>接口，可以作为<code>handler</code>传入http服务
+<ul>
+<li><code>ServeHTTP</code>方法中，调用<code>newSliceRouterContext</code>初始化<code>SliceRouterContext</code>，并且根据<code>req</code>中的url，<code>按照最长url前缀匹配</code>的规则寻找<code>groups</code>中满足条件的<code>SliceGroup</code>丢给<code>SliceRouterContext</code></li>
+<li><code>ServeHTTP</code>方法中，调用<code>Next</code>方法开始整个<code>handlers</code>数组的<code>handler</code>调用</li>
+</ul>
+</li>
+<li><code>SliceRouterHandler</code>包含<code>coreFunc</code>以及<code>SliceRouter对象</code></li>
+<li><code>SliceRouter</code>包含<code>SliceGroup</code>列表</li>
+<li><code>SliceGroup</code>对象包含<code>path</code>以及<code>handlers</code>
+<ul>
+<li>使用<code>Use</code>方法来添加中间件，并且去重添加到<code>SliceRouter</code>中的<code>groups</code>中去</li>
+<li>使用<code>Group</code>方法初始化一个<code>SliceGroup</code></li>
+</ul>
+</li>
+<li>贯穿整条调用链的是<code>SliceRouterContext</code>对象，包含：
+<ul>
+<li><code>SliceGroup</code>指针</li>
+<li><code>ResponseWriter</code></li>
+<li><code>Request</code>指针</li>
+<li><code>Context</code></li>
+<li><code>index</code>索引</li>
+</ul>
+</li>
+<li>中间件中可以调用<code>SliceRouterContext</code>中的<code>Next</code>方法继续，也可以调用<code>Abort</code>方法进行终止</li>
+<li><code>Abort</code>终止的方式就是设置索引index为<code>abortIndex</code></li>
+</ol>
+<details >
+  <summary>具体代码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">abortIndex</span> <span style="color:#66d9ef">int8</span> = <span style="color:#a6e22e">math</span>.<span style="color:#a6e22e">MaxInt8</span> <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">HandlerFunc</span> <span style="color:#66d9ef">func</span>(<span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterContext</span>)
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">SliceRouter</span> <span style="color:#66d9ef">struct</span> {
+   <span style="color:#a6e22e">groups</span> []<span style="color:#f92672">*</span> <span style="color:#a6e22e">SliceGroup</span>
+}
+
+<span style="color:#66d9ef">type</span> <span style="color:#a6e22e">SliceGroup</span> <span style="color:#66d9ef">struct</span> {
+   <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouter</span>
+   <span style="color:#a6e22e">path</span> <span style="color:#66d9ef">string</span>
+   <span style="color:#a6e22e">handlers</span> []<span style="color:#a6e22e">HandlerFunc</span>
+}
+
+
+<span style="color:#75715e">// slice router context
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">SliceRouterContext</span> <span style="color:#66d9ef">struct</span> {
+   <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceGroup</span>
+   <span style="color:#a6e22e">RespW</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>
+   <span style="color:#a6e22e">Req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>
+   <span style="color:#a6e22e">Ctx</span> <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">Context</span>
+   <span style="color:#a6e22e">index</span> <span style="color:#66d9ef">int8</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">newSliceRouterContext</span>(<span style="color:#a6e22e">rw</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>, <span style="color:#a6e22e">r</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouter</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterContext</span>  {
+   <span style="color:#a6e22e">newSliceGroup</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">SliceGroup</span>{}
+
+   <span style="color:#a6e22e">matchUrlLen</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>
+
+   <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">group</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">groups</span> {
+      <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">HasPrefix</span>(<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">RequestURI</span>, <span style="color:#a6e22e">group</span>.<span style="color:#a6e22e">path</span>) {
+         <span style="color:#a6e22e">pathLen</span> <span style="color:#f92672">:=</span> len(<span style="color:#a6e22e">group</span>.<span style="color:#a6e22e">path</span>)
+         <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">pathLen</span> &gt; <span style="color:#a6e22e">matchUrlLen</span> {
+            <span style="color:#a6e22e">matchUrlLen</span> = <span style="color:#a6e22e">pathLen</span>
+            <span style="color:#f92672">*</span><span style="color:#a6e22e">newSliceGroup</span> = <span style="color:#f92672">*</span><span style="color:#a6e22e">group</span> <span style="color:#75715e">//浅拷贝数组指针
+</span><span style="color:#75715e"></span>         }
+      }
+   }
+
+   <span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">SliceRouterContext</span>{<span style="color:#a6e22e">RespW</span>: <span style="color:#a6e22e">rw</span>, <span style="color:#a6e22e">Req</span>: <span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">SliceGroup</span>: <span style="color:#a6e22e">newSliceGroup</span>, <span style="color:#a6e22e">Ctx</span>: <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Context</span>()}
+   <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Reset</span>()
+   <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">c</span>
+}
+
+<span style="color:#75715e">// 获取上下文值
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterContext</span>) <span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">interface</span>{}) <span style="color:#66d9ef">interface</span>{} {
+   <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Ctx</span>.<span style="color:#a6e22e">Value</span>(<span style="color:#a6e22e">key</span>)
+}
+
+<span style="color:#75715e">// 设置上下文值
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterContext</span>) <span style="color:#a6e22e">Set</span>(<span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">val</span> <span style="color:#66d9ef">interface</span>{}) {
+   <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Ctx</span> = <span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">WithValue</span>(<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">Ctx</span>, <span style="color:#a6e22e">key</span>, <span style="color:#a6e22e">val</span>)
+}
+
+<span style="color:#75715e">//
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterContext</span>) <span style="color:#a6e22e">Next</span>()  {
+   <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">index</span><span style="color:#f92672">++</span>
+
+   <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">index</span> &lt; int8(len(<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">groups</span>)) {
+      <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">handlers</span>[<span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">index</span>](<span style="color:#a6e22e">ctx</span>)
+      <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">index</span><span style="color:#f92672">++</span>
+   }
+}
+
+<span style="color:#75715e">// 重置handlers数组计数
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterContext</span>) <span style="color:#a6e22e">Reset</span>()  {
+   <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">index</span> = <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterContext</span>) <span style="color:#a6e22e">Abort</span>() {
+   <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">index</span> = <span style="color:#a6e22e">abortIndex</span>
+}
+
+<span style="color:#75715e">// 是否跳过了回调
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">ctx</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterContext</span>) <span style="color:#a6e22e">IsAborted</span>() <span style="color:#66d9ef">bool</span> {
+   <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ctx</span>.<span style="color:#a6e22e">index</span> <span style="color:#f92672">&gt;=</span> <span style="color:#a6e22e">abortIndex</span>
+}
+
+<span style="color:#75715e">// sliceRouterHandler
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">SliceRouterHandler</span> <span style="color:#66d9ef">struct</span> {
+   <span style="color:#a6e22e">coreFunc</span> <span style="color:#66d9ef">func</span>(<span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterContext</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>
+   <span style="color:#a6e22e">router</span>   <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouter</span>
+}
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewSliceRouterHandler</span>(<span style="color:#a6e22e">coreFunc</span> <span style="color:#66d9ef">func</span>(<span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterContext</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span>, <span style="color:#a6e22e">router</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouter</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterHandler</span> {
+   <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">SliceRouterHandler</span>{
+      <span style="color:#a6e22e">coreFunc</span>: <span style="color:#a6e22e">coreFunc</span>,
+      <span style="color:#a6e22e">router</span>:   <span style="color:#a6e22e">router</span>,
+   }
+}
+
+<span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">w</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterHandler</span>) <span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">rw</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ResponseWriter</span>, <span style="color:#a6e22e">req</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Request</span>) {
+   <span style="color:#a6e22e">c</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">newSliceRouterContext</span>(<span style="color:#a6e22e">rw</span>, <span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">router</span>)
+   <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">coreFunc</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+      <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">handlers</span> = append(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">handlers</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterContext</span>) {
+         <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">coreFunc</span>(<span style="color:#a6e22e">c</span>).<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">rw</span>, <span style="color:#a6e22e">req</span>)
+      })
+   }
+   <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Reset</span>()
+   <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Next</span>()
+}
+
+<span style="color:#75715e">// 构造 router
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewSliceRouter</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouter</span> {
+   <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">SliceRouter</span>{}
+}
+
+<span style="color:#75715e">// 创建 Group
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">g</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouter</span>) <span style="color:#a6e22e">Group</span>(<span style="color:#a6e22e">path</span> <span style="color:#66d9ef">string</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceGroup</span> {
+   <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">SliceGroup</span>{
+      <span style="color:#a6e22e">SliceRouter</span>: <span style="color:#a6e22e">g</span>,
+      <span style="color:#a6e22e">path</span>:        <span style="color:#a6e22e">path</span>,
+   }
+}
+
+<span style="color:#75715e">// 构造回调方法
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">g</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceGroup</span>) <span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">middlewares</span> <span style="color:#f92672">...</span><span style="color:#a6e22e">HandlerFunc</span>) <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceGroup</span> {
+   <span style="color:#a6e22e">g</span>.<span style="color:#a6e22e">handlers</span> = append(<span style="color:#a6e22e">g</span>.<span style="color:#a6e22e">handlers</span>, <span style="color:#a6e22e">middlewares</span><span style="color:#f92672">...</span>)
+   <span style="color:#a6e22e">existsFlag</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">false</span>
+   <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">oldGroup</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">g</span>.<span style="color:#a6e22e">SliceRouter</span>.<span style="color:#a6e22e">groups</span> {
+      <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">oldGroup</span> <span style="color:#f92672">==</span> <span style="color:#a6e22e">g</span> {
+         <span style="color:#a6e22e">existsFlag</span> = <span style="color:#66d9ef">true</span>
+      }
+   }
+   <span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">existsFlag</span> {
+      <span style="color:#a6e22e">g</span>.<span style="color:#a6e22e">SliceRouter</span>.<span style="color:#a6e22e">groups</span> = append(<span style="color:#a6e22e">g</span>.<span style="color:#a6e22e">SliceRouter</span>.<span style="color:#a6e22e">groups</span>, <span style="color:#a6e22e">g</span>)
+   }
+   <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">g</span>
+}
+</code></pre></div>
+  </div>
+</details>
+
+<details >
+  <summary>tracelog中间件 具体代码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TraceLogSliceMiddleware</span>() <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterContext</span>) {
+   <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">SliceRouterContext</span>) {
+      <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;trace_in&#34;</span>)
+      <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Abort</span>()
+      <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;trace_out&#34;</span>)
+   }
+}
+</code></pre></div>
+  </div>
+</details>
+
+<details >
+  <summary>中间件使用 具体代码</summary>
+  <div class="markdown-inner">
+    <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-go" data-lang="go"><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">addr</span> = <span style="color:#e6db74">&#34;127.0.0.1:2002&#34;</span>
+
+
+<span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+   <span style="color:#a6e22e">reverseProxy</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">SliceRouterContext</span>) <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">Handler</span> {
+      <span style="color:#a6e22e">rs1</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;http://127.0.0.1:2003/base&#34;</span>
+      <span style="color:#a6e22e">url1</span>, <span style="color:#a6e22e">err1</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">url</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#a6e22e">rs1</span>)
+      <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err1</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+         <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err1</span>)
+      }
+
+      <span style="color:#a6e22e">rs2</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;http://127.0.0.1:2004/base&#34;</span>
+      <span style="color:#a6e22e">url2</span>, <span style="color:#a6e22e">err2</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">url</span>.<span style="color:#a6e22e">Parse</span>(<span style="color:#a6e22e">rs2</span>)
+      <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err2</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+         <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">err2</span>)
+      }
+
+      <span style="color:#a6e22e">urls</span> <span style="color:#f92672">:=</span> []<span style="color:#f92672">*</span><span style="color:#a6e22e">url</span>.<span style="color:#a6e22e">URL</span>{<span style="color:#a6e22e">url1</span>, <span style="color:#a6e22e">url2</span>}
+      <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">proxy</span>.<span style="color:#a6e22e">NewMultipleHostsReverseProxy</span>(<span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">urls</span>)
+   }
+
+   <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Starting httpserver at &#34;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">addr</span>)
+
+   <span style="color:#a6e22e">sliceRouter</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">NewSliceRouter</span>()
+
+   <span style="color:#a6e22e">sliceRouter</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;/base&#34;</span>).<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">TraceLogSliceMiddleware</span>(), <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">SliceRouterContext</span>) {
+      <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">RespW</span>.<span style="color:#a6e22e">Write</span>([]byte(<span style="color:#e6db74">&#34;test func&#34;</span>))
+
+   })
+
+   <span style="color:#a6e22e">sliceRouter</span>.<span style="color:#a6e22e">Group</span>(<span style="color:#e6db74">&#34;/&#34;</span>).<span style="color:#a6e22e">Use</span>(<span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">TraceLogSliceMiddleware</span>(), <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">SliceRouterContext</span>) {
+      <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;reverseProxy&#34;</span>)
+      <span style="color:#a6e22e">reverseProxy</span>(<span style="color:#a6e22e">c</span>).<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">RespW</span>, <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Req</span>)
+   })
+
+   <span style="color:#a6e22e">routerHandler</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">middleware</span>.<span style="color:#a6e22e">NewSliceRouterHandler</span>(<span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">sliceRouter</span>)
+   <span style="color:#a6e22e">log</span>.<span style="color:#a6e22e">Fatal</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">ListenAndServe</span>(<span style="color:#a6e22e">addr</span>, <span style="color:#a6e22e">routerHandler</span>))
+}
+</code></pre></div>
+  </div>
+</details>
+
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex justify-between">
+
+
+
+
+
+</div>
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#1-预备">1. 预备</a>
+      <ul>
+        <li><a href="#11-准备两个后端web服务">1.1. 准备两个后端web服务</a></li>
+        <li><a href="#12-访问工具">1.2. 访问工具</a></li>
+      </ul>
+    </li>
+    <li><a href="#2-反向代理">2. 反向代理</a>
+      <ul>
+        <li><a href="#21-单后端target反向代理">2.1. 单后端（target）反向代理</a></li>
+        <li><a href="#22-分析反向代理代码并添加修改response内容">2.2. 分析反向代理代码，并添加修改response内容</a></li>
+        <li><a href="#23-支持多个后端服务器">2.3. 支持多个后端服务器</a></li>
+      </ul>
+    </li>
+    <li><a href="#3-负载均衡">3. 负载均衡</a>
+      <ul>
+        <li><a href="#31-负载均衡算法">3.1. 负载均衡算法</a></li>
+        <li><a href="#32-通用接口工厂模式">3.2. 通用接口/工厂模式</a></li>
+        <li><a href="#33-支持负载均衡算法的反向代理实现">3.3. 支持负载均衡算法的反向代理实现</a></li>
+      </ul>
+    </li>
+    <li><a href="#4-中间件">4. 中间件</a>
+      <ul>
+        <li><a href="#41-基于数组的中间件实现">4.1. 基于数组的中间件实现</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

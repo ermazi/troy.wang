@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="分析collector组件的源码，查看一下n9e默认采集的一些指标，并尽可能理解含义。
+系统指标 CPU    metric 说明 必要性 采集来源     cpu.idle 空闲     cpu.util 使用率     cpu.user 用户使用率     cpu.sys 系统使用率     cpu.nice 低优先级使用率     cpu.iowait iowait使用率 并不一定反应io繁忙程度    cpu.irq 中断请求     cpu.softirq 软中断请求     cpu.steal      cpu.guest      cpu."><meta property="og:title" content="n9e默认监控指标" />
+<meta property="og:description" content="分析collector组件的源码，查看一下n9e默认采集的一些指标，并尽可能理解含义。
+系统指标 CPU    metric 说明 必要性 采集来源     cpu.idle 空闲     cpu.util 使用率     cpu.user 用户使用率     cpu.sys 系统使用率     cpu.nice 低优先级使用率     cpu.iowait iowait使用率 并不一定反应io繁忙程度    cpu.irq 中断请求     cpu.softirq 软中断请求     cpu.steal      cpu.guest      cpu." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://troy.wang/docs/linux/monitor/collector-metrics/" />
+
+<title>n9e默认监控指标 | /bin/troy.wang</title>
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.6df681b0bb21155cba49f6078e3559216772d8e03e780d240c73ea21817ed5e5.css" integrity="sha256-bfaBsLshFVy6SfYHjjVZIWdy2OA&#43;eA0kDHPqIYF&#43;1eU=">
+<script defer src="/en.search.min.98150f84f15670dd15a0308be7f26d10d7474a77213c5fa4f8e042be3c8e8257.js" integrity="sha256-mBUPhPFWcN0VoDCL5/JtENdHSnchPF&#43;k&#43;OBCvjyOglc="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" class="hidden" id="menu-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  <nav>
+<h2 class="book-brand">
+  <a href="/"><span>/bin/troy.wang</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <span>Kubernetes</span>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/argo-rollouts-support-traefik/" class="">argo-rollouts之流量管理添加traefik支持</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/argo-rollouts/" class="">k8s灰度发布神器之argo-rollouts</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/coredns-in-production/" class="">在kubernetes生产环境coredns</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/run-microk8s-on-ubuntu/" class="">在ubuntu上运行microk8s</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/linux/" class="">linux</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/basic/" class="collapsed ">linux基础知识</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/monitor/" class="collapsed ">监控</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/monitor/collector-metrics/" class="active">n9e默认监控指标</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/interview/" class="collapsed ">伪装者</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/bigdata/" class="collapsed ">大数据</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/shell/" class="collapsed ">shell</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/n9e/" class="">n9e</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/" class="collapsed ">n9e源码学golang</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/compose/" class="">编排</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/compose/ansible/" class="collapsed ">ansible</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/compose/terraform/" class="collapsed ">terraform</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <span>golang</span>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/golang/posts/golang-gateway/" class="">golang实现简单网关</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/golang/posts/circuit-breaker/" class="">hytrix-go</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/about-me/" class="">关于我</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+  </ul>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="/posts/" >
+        博客
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>n9e默认监控指标</strong>
+
+  <label for="toc-control">
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+  </label>
+</div>
+
+
+  
+    <input type="checkbox" class="hidden" id="toc-control" />
+    <aside class="hidden clearfix">
+      
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#系统指标">系统指标</a>
+      <ul>
+        <li><a href="#cpu">CPU</a></li>
+        <li><a href="#磁盘">磁盘</a></li>
+        <li><a href="#内存">内存</a></li>
+        <li><a href="#网络">网络</a></li>
+        <li><a href="#系统">系统</a></li>
+        <li><a href="#进程">进程</a></li>
+        <li><a href="#日志">日志</a></li>
+      </ul>
+    </li>
+    <li><a href="#其他">其他</a>
+      <ul>
+        <li><a href="#组件指标">组件指标</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+    </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><p>分析collector组件的源码，查看一下n9e默认采集的一些指标，并尽可能理解含义。</p>
+<h2 id="系统指标">系统指标</h2>
+<h3 id="cpu">CPU</h3>
+<table>
+<thead>
+<tr>
+<th>metric</th>
+<th>说明</th>
+<th>必要性</th>
+<th>采集来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cpu.idle</td>
+<td>空闲</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>cpu.util</td>
+<td>使用率</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>cpu.user</td>
+<td>用户使用率</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>cpu.sys</td>
+<td>系统使用率</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>cpu.nice</td>
+<td>低优先级使用率</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>cpu.iowait</td>
+<td>iowait使用率</td>
+<td>并不一定反应io繁忙程度</td>
+<td></td>
+</tr>
+<tr>
+<td>cpu.irq</td>
+<td>中断请求</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>cpu.softirq</td>
+<td>软中断请求</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>cpu.steal</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>cpu.guest</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>cpu.switches</td>
+<td>上下文切换</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>cpu.core.*</td>
+<td>各个核心的指标</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="磁盘">磁盘</h3>
+<table>
+<thead>
+<tr>
+<th>metric</th>
+<th>说明</th>
+<th>必要性</th>
+<th>采集来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>disk.bytes.total</td>
+<td>某盘总空间</td>
+<td></td>
+<td>du</td>
+</tr>
+<tr>
+<td>disk.bytes.free</td>
+<td>剩余空间</td>
+<td></td>
+<td>du</td>
+</tr>
+<tr>
+<td>disk.bytes.used</td>
+<td>已使用</td>
+<td></td>
+<td>du</td>
+</tr>
+<tr>
+<td>disk.bytes.used.percent</td>
+<td>已使用百分比</td>
+<td></td>
+<td>du</td>
+</tr>
+<tr>
+<td>disk.inodes.total</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>disk.inodes.free</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>disk.inodes.used</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>disk.inodes.used.percent</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>disk.cap.bytes.total</td>
+<td>某实例总空间</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>disk.cap.bytes.used</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>disk.cap.bytes.free</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>disk.cap.bytes.used.percent</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>disk.io.read.request</td>
+<td>每秒读请求数</td>
+<td>读iops</td>
+<td></td>
+</tr>
+<tr>
+<td>disk.io.write.request</td>
+<td>每秒写请求数</td>
+<td>写iops</td>
+<td></td>
+</tr>
+<tr>
+<td>disk.io.read.bytes</td>
+<td>读吞吐</td>
+<td>读吞吐</td>
+<td></td>
+</tr>
+<tr>
+<td>disk.io.write.bytes</td>
+<td>写吞吐</td>
+<td>写吞吐</td>
+<td></td>
+</tr>
+<tr>
+<td>disk.io.avgrq_sz</td>
+<td>平均每I/O操作数据大小</td>
+<td></td>
+<td>delta(rsect+wsect)/delta(rio+wio)</td>
+</tr>
+<tr>
+<td>disk.io.avgqu_sz</td>
+<td>平均I/O队列长度</td>
+<td></td>
+<td>delta(aveq)/s/1000</td>
+</tr>
+<tr>
+<td>disk.io.await</td>
+<td>平均每次设备I/O操作的等待时间 (毫秒)</td>
+<td>队列+磁盘操作</td>
+<td>delta(ruse+wuse)/delta(rio+wio)</td>
+</tr>
+<tr>
+<td>disk.io.svctm</td>
+<td>平均每次设备I/O操作的服务时间 (毫秒)</td>
+<td>磁盘操作</td>
+<td>delta(use)/delta(rio+wio)</td>
+</tr>
+<tr>
+<td>disk.io.util</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>disk.rw.error</td>
+<td>磁盘是否可读写</td>
+<td></td>
+<td>读写文件测试</td>
+</tr>
+</tbody>
+</table>
+<h3 id="内存">内存</h3>
+<table>
+<thead>
+<tr>
+<th>metric</th>
+<th>说明</th>
+<th>必要性</th>
+<th>采集来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mem.bytes.total</td>
+<td>总内存</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>mem.bytes.used</td>
+<td>总使用</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>mem.bytes.free</td>
+<td>总剩余</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>mem.bytes.used.percent</td>
+<td>使用率</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>mem.bytes.buffers</td>
+<td>缓冲占用</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>mem.bytes.cached</td>
+<td>缓存占用</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>mem.swap.bytes.total</td>
+<td>swap总</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>mem.swap.bytes.used</td>
+<td>swap使用</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>mem.swap.bytes.free</td>
+<td>swap剩余</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>mem.swap.bytes.used.percent</td>
+<td>swap使用率</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="网络">网络</h3>
+<table>
+<thead>
+<tr>
+<th>metric</th>
+<th>说明</th>
+<th>必要性</th>
+<th>采集来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>net.in.bits</td>
+<td>入站bps</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.out.bits</td>
+<td>出站bps</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.in.dropped</td>
+<td>入丢弃bps</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.out.dropped</td>
+<td>出丢弃bps</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.in.pps</td>
+<td>入包转发率</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.out.pps</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.in.errs</td>
+<td>入错误率</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.out.errs</td>
+<td>出错误率</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.in.percent</td>
+<td>入带宽占比</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.out.percent</td>
+<td>出带宽占比</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.bandwidth.mbits</td>
+<td>网卡带宽/速率</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.bandwidth.mbits.total</td>
+<td>网卡总带宽</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.in.bits.total</td>
+<td>总入站</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.out.bits.total</td>
+<td>总出站</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.in.bits.total.percent</td>
+<td>总入使用率</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>net.out.bits.total.percent</td>
+<td>总出使用率</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sockets.used</td>
+<td>已使用socks数量</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sockets.tcp.inuse</td>
+<td>tcp使用的数量</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sockets.tcp.timewait</td>
+<td>timewait的数量</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="系统">系统</h3>
+<table>
+<thead>
+<tr>
+<th>metric</th>
+<th>说明</th>
+<th>必要性</th>
+<th>采集来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cpu.loadavg.1</td>
+<td>1分钟均载</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>cpu.loadavg.5</td>
+<td>5分钟均载</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>cpu.loadavg.15</td>
+<td>15分钟均载</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sys.net.netfilter.nf_conntrack_max</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sys.net.netfilter.nf_conntrack_count</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sys.net.netfilter.nf_conntrack_count.percent</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sys.ntp.offset.ms</td>
+<td>ntp偏移</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sys.fs.files.max</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sys.fs.files.free</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sys.fs.files.used</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sys.fs.files.used.percent</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sys.ps.process.total</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>sys.ps.entity.total</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="进程">进程</h3>
+<table>
+<thead>
+<tr>
+<th>metric</th>
+<th>说明</th>
+<th>必要性</th>
+<th>采集来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>proc.port.listen</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>proc.num</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="日志">日志</h3>
+<h2 id="其他">其他</h2>
+<h3 id="组件指标">组件指标</h3>
+<table>
+<thead>
+<tr>
+<th>metric</th>
+<th>说明</th>
+<th>必要性</th>
+<th>采集来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>proc.agent.alive</td>
+<td>collector存活指标</td>
+<td>collector是否存活</td>
+<td>固定值</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex justify-between">
+
+
+
+
+
+</div>
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#系统指标">系统指标</a>
+      <ul>
+        <li><a href="#cpu">CPU</a></li>
+        <li><a href="#磁盘">磁盘</a></li>
+        <li><a href="#内存">内存</a></li>
+        <li><a href="#网络">网络</a></li>
+        <li><a href="#系统">系统</a></li>
+        <li><a href="#进程">进程</a></li>
+        <li><a href="#日志">日志</a></li>
+      </ul>
+    </li>
+    <li><a href="#其他">其他</a>
+      <ul>
+        <li><a href="#组件指标">组件指标</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>大数据 on /bin/troy.wang</title>
+    <link>https://troy.wang/docs/linux/bigdata/</link>
+    <description>Recent content in 大数据 on /bin/troy.wang</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="https://troy.wang/docs/linux/bigdata/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>kafka管理员手册</title>
+      <link>https://troy.wang/docs/linux/bigdata/kafka/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/linux/bigdata/kafka/</guid>
+      <description> 持久化消息队列
+ </description>
+    </item>
+    
+    <item>
+      <title>ogg</title>
+      <link>https://troy.wang/docs/linux/bigdata/ogg/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/linux/bigdata/ogg/</guid>
+      <description>ogg ogg全名Oracle GoldenGate，是Oracle公司用于同步数据库的工具。
+1. 需求 监听源数据库MySQL/Oracle，将DML事件发送到Kafka中。
+2. 方案 2.1. 使用ogg（推荐） ogg支持MySQL和Oracle，将DML同步到kafka中，提供给后端使用。
+2.2. 使用canal canal是阿里开源的数据库同步/迁移工具，目前仅支持MySQL作为源数据库；对于Oracle，可以使用yugong同步到MySQL中，然后再基于canal进行binlog解析，最后同步到kafka中。
+3. ogg的安装部署（MySQL） 3.1. 准备材料  下载ogg二进制包  Oracle GoldenGate for Big Data 19.1.0.0.1 on Linux x86-64 Oracle GoldenGate 19.1.0.0.3 for MySQL on Linux x86-64   centos7  ogg-mysql(10.41.253.211) ogg-target(10.41.253.212)   JDK 1.8  /usr/local/jdk    3.2. 安装测试MySQL ubuntu
+# 安装 $ apt install mysql-server-5.7 -y # 简单配置 $ mysql_secure_installation # 添加binlog配置 $ grep -E &amp;#34;^(server-id|log_bin|binlog_format)&amp;#34; /etc/mysql/mysql.</description>
+    </item>
+    
+  </channel>
+</rss>

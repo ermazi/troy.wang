@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>伪装者 on /bin/troy.wang</title>
+    <link>https://troy.wang/docs/linux/interview/</link>
+    <description>Recent content in 伪装者 on /bin/troy.wang</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="https://troy.wang/docs/linux/interview/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>伪装者-S1</title>
+      <link>https://troy.wang/docs/linux/interview/interview-s1/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/linux/interview/interview-s1/</guid>
+      <description>1.给定一个nginx的日志access.log，请输出实时的qps.
+while true do datatime=`date +%d/%b/%Y:%T` a=`grep &amp;#34;$datatime&amp;#34; /var/log/nginx/access.log|wc -l` echo &amp;#34;$a&amp;#34; sleep 1 done 2.现有一个100G大小的日志文件，由于时间因素，只允许读取一次，但需要分别将含有两个pattern的行输出到两个文件中，请给出方案
+假设pattern1和pattern2
+awk &amp;#39;{ if ($0 ~ /pattern1/ ) print $0 &amp;gt;&amp;gt; &amp;#34;a&amp;#34;; if ( $0 ~ /pattern2/ ) print $0 &amp;gt;&amp;gt; &amp;#34;b&amp;#34;}&amp;#39; sample.txt 3.发现某IP无法访问，请给出尽可能详细的诊断方案，定位可能存在的问题。（目标机器宕机、近机房端网络中断、骨干网问题、或者其他可能的问题。）
+ ping目标机器 mtr/traceroute该IP，看到哪个节点有问题 网络路径上进行抓包tcpdump  4.uptime命令的输出中有load average: 0.24, 0.30, 0.24，请(1)解释这里load的数值的含义；(2)说明该数值多大时表示系统负载很高；(3)当系统负载高时，如何找出是什么因素导致负载高的。
+ uptime三个值分别为1分钟，5分钟和15分钟的平均负载 当负载值大于等于CPU核心数的时候，表明负载很高 使用top或者类似的工具（dstat），查看cpu相关指标  5.现在有一个大小约1g的源代码目录（如linux内核源码），需要从机器A上传输到机器B上。请给出两到三种方案，并陈述各方案的优劣。
+由于是源码文件，那么小问题一定是非常多的，最好先打包压缩，然后再使用scp或者rsync进行传输。
+ scp传输加密 rsync比较灵活，可以排除部分文件/目录 压缩完后再传输，利用计算资源节省网络带宽提升效率 也可以直接起一个python http server，然后对端下载  6.现有一个目录，其中有一百万(数量级)个的小文件，请给出两到三种删除该目录的方法，并陈述各方案的优劣。
+ rm -rf /data/dst这个方法可以，慢慢等，千万不要rm -rf /data/dst/*，小文件会列出来，参数列表过长，报错 find /data/dst -type f | xargs rm -f该方法能删除，但是会比较慢 ``find /data/dst -type f -delete`该方法能删除，比2快 mkdir /tmp/dst &amp;amp;&amp;amp; rsync --delete-before -a -H -v --progress --stats /tmp/dst/ /data/dst利用rsync的--delete选项来删除  </description>
+    </item>
+    
+  </channel>
+</rss>

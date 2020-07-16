@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>https://troy.wang/docs/kubernetes/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/kubernetes/posts/argo-rollouts-support-traefik/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/golang/posts/golang-gateway/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/kubernetes/posts/argo-rollouts/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/golang/posts/circuit-breaker/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/compose/ansible/tricks/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/compose/ansible/common-roles/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/kubernetes/posts/coredns-in-production/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/kubernetes/posts/run-microk8s-on-ubuntu/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/linux/</loc>
+    <lastmod>2020-07-14T11:20:35+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/compose/ansible/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/n9e/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/compose/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/golang/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/linux/basic/</loc>
+    <lastmod>2020-07-14T11:20:35+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/n9e/code/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/compose/terraform/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/linux/monitor/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/linux/interview/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/linux/bigdata/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/linux/bigdata/kafka/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/linux/bigdata/ogg/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/linux/shell/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/about-me/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/</loc>
+    <lastmod>2020-07-14T11:20:35+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/</loc>
+    <lastmod>2020-07-14T11:20:35+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/linux/basic/start-stop-daemon/</loc>
+    <lastmod>2020-07-14T11:20:35+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/linux/basic/systemd/</loc>
+    <lastmod>2020-07-14T11:20:35+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/posts/</loc>
+    <lastmod>2020-05-20T11:20:35+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/posts/how-to-generate-server-certs/</loc>
+    <lastmod>2020-05-20T11:20:35+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/posts/running-man/</loc>
+    <lastmod>2020-05-05T11:20:35+08:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/categories/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/posts/how-to-use-hugo-and-github-pages/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/n9e/code/n9e-arch/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/n9e/code/http-framework/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/linux/monitor/collector-metrics/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/tags/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/compose/terraform/terraform/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/compose/terraform/aliyun/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/compose/terraform/data-type/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/compose/terraform/data-agg/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/linux/interview/interview-s1/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/n9e/code/regex/</loc>
+  </url>
+  
+  <url>
+    <loc>https://troy.wang/docs/linux/shell/abs/</loc>
+  </url>
+  
+</urlset>

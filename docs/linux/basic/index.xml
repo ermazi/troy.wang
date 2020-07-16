@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>linux基础知识 on /bin/troy.wang</title>
+    <link>https://troy.wang/docs/linux/basic/</link>
+    <description>Recent content in linux基础知识 on /bin/troy.wang</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 14 Jul 2020 11:20:35 +0800</lastBuildDate>
+    
+	<atom:link href="https://troy.wang/docs/linux/basic/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>start-stop-daemon指北</title>
+      <link>https://troy.wang/docs/linux/basic/start-stop-daemon/</link>
+      <pubDate>Tue, 14 Jul 2020 11:20:35 +0800</pubDate>
+      
+      <guid>https://troy.wang/docs/linux/basic/start-stop-daemon/</guid>
+      <description>start-stop-daemon指北  管理系统级别守护进程
+ 案例  以coredns说明start-stop-daemon的使用方式
+ 启动
+start-stop-daemon --start --background -m --oknodo --pidfile /var/run/coredns.pid --exec /data/services/coredns/coredns -- -conf /data/services/coredns/Corefile 关闭
+start-stop-daemon --stop --pidfile /var/run/coredns.pid -R TERM/20/KILL/5 </description>
+    </item>
+    
+    <item>
+      <title>systemd指北</title>
+      <link>https://troy.wang/docs/linux/basic/systemd/</link>
+      <pubDate>Tue, 14 Jul 2020 11:20:35 +0800</pubDate>
+      
+      <guid>https://troy.wang/docs/linux/basic/systemd/</guid>
+      <description>使用systemd管理应用程序  linux上管理进程的方式多种多样，有python系列的supervisord，nodejs系列的pm2，linux命令start-stop-daemon，也有较为传统的sysinit的service，还有systemd方式，各有优缺点，该文主要讲述一下systemd管理服务的方式
+ 咋编写 查手册，查文档，弄清程序运行基本概念，需要啥参数搞啥参数即可
+以redis.service为例搞事 [Unit] Description=Advanced key-value store After=network.target Documentation=http://redis.io/documentation, man:redis-server(1) [Service] Type=forking ExecStart=/usr/bin/redis-server /etc/redis/redis.conf PIDFile=/run/redis/redis-server.pid TimeoutStopSec=0 Restart=always User=redis Group=redis RuntimeDirectory=redis RuntimeDirectoryMode=2755 UMask=007 PrivateTmp=yes LimitNOFILE=65535 PrivateDevices=yes ProtectHome=yes ReadOnlyDirectories=/ ReadWritePaths=-/var/lib/redis ReadWritePaths=-/var/log/redis ReadWritePaths=-/var/run/redis NoNewPrivileges=true CapabilityBoundingSet=CAP_SETGID CAP_SETUID CAP_SYS_RESOURCE MemoryDenyWriteExecute=true ProtectKernelModules=true ProtectKernelTunables=true ProtectControlGroups=true RestrictRealtime=true RestrictNamespaces=true RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX # redis-server can write to its own config file when in cluster mode so we # permit writing there by default. If you are not using this feature, it is # recommended that you replace the following lines with &amp;#34;ProtectSystem=full&amp;#34;.</description>
+    </item>
+    
+  </channel>
+</rss>

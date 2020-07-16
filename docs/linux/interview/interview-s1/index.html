@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="1.给定一个nginx的日志access.log，请输出实时的qps.
+while true do datatime=`date &#43;%d/%b/%Y:%T` a=`grep &#34;$datatime&#34; /var/log/nginx/access.log|wc -l` echo &#34;$a&#34; sleep 1 done 2.现有一个100G大小的日志文件，由于时间因素，只允许读取一次，但需要分别将含有两个pattern的行输出到两个文件中，请给出方案
+假设pattern1和pattern2
+awk &#39;{ if ($0 ~ /pattern1/ ) print $0 &gt;&gt; &#34;a&#34;; if ( $0 ~ /pattern2/ ) print $0 &gt;&gt; &#34;b&#34;}&#39; sample.txt 3.发现某IP无法访问，请给出尽可能详细的诊断方案，定位可能存在的问题。（目标机器宕机、近机房端网络中断、骨干网问题、或者其他可能的问题。）
+ ping目标机器 mtr/traceroute该IP，看到哪个节点有问题 网络路径上进行抓包tcpdump  4.uptime命令的输出中有load average: 0.24, 0.30, 0.24，请(1)解释这里load的数值的含义；(2)说明该数值多大时表示系统负载很高；(3)当系统负载高时，如何找出是什么因素导致负载高的。
+ uptime三个值分别为1分钟，5分钟和15分钟的平均负载 当负载值大于等于CPU核心数的时候，表明负载很高 使用top或者类似的工具（dstat），查看cpu相关指标  5.现在有一个大小约1g的源代码目录（如linux内核源码），需要从机器A上传输到机器B上。请给出两到三种方案，并陈述各方案的优劣。
+由于是源码文件，那么小问题一定是非常多的，最好先打包压缩，然后再使用scp或者rsync进行传输。
+ scp传输加密 rsync比较灵活，可以排除部分文件/目录 压缩完后再传输，利用计算资源节省网络带宽提升效率 也可以直接起一个python http server，然后对端下载  6.现有一个目录，其中有一百万(数量级)个的小文件，请给出两到三种删除该目录的方法，并陈述各方案的优劣。
+ rm -rf /data/dst这个方法可以，慢慢等，千万不要rm -rf /data/dst/*，小文件会列出来，参数列表过长，报错 find /data/dst -type f | xargs rm -f该方法能删除，但是会比较慢 ``find /data/dst -type f -delete`该方法能删除，比2快 mkdir /tmp/dst &amp;&amp; rsync --delete-before -a -H -v --progress --stats /tmp/dst/ /data/dst利用rsync的--delete选项来删除  "><meta property="og:title" content="伪装者-S1" />
+<meta property="og:description" content="1.给定一个nginx的日志access.log，请输出实时的qps.
+while true do datatime=`date &#43;%d/%b/%Y:%T` a=`grep &#34;$datatime&#34; /var/log/nginx/access.log|wc -l` echo &#34;$a&#34; sleep 1 done 2.现有一个100G大小的日志文件，由于时间因素，只允许读取一次，但需要分别将含有两个pattern的行输出到两个文件中，请给出方案
+假设pattern1和pattern2
+awk &#39;{ if ($0 ~ /pattern1/ ) print $0 &gt;&gt; &#34;a&#34;; if ( $0 ~ /pattern2/ ) print $0 &gt;&gt; &#34;b&#34;}&#39; sample.txt 3.发现某IP无法访问，请给出尽可能详细的诊断方案，定位可能存在的问题。（目标机器宕机、近机房端网络中断、骨干网问题、或者其他可能的问题。）
+ ping目标机器 mtr/traceroute该IP，看到哪个节点有问题 网络路径上进行抓包tcpdump  4.uptime命令的输出中有load average: 0.24, 0.30, 0.24，请(1)解释这里load的数值的含义；(2)说明该数值多大时表示系统负载很高；(3)当系统负载高时，如何找出是什么因素导致负载高的。
+ uptime三个值分别为1分钟，5分钟和15分钟的平均负载 当负载值大于等于CPU核心数的时候，表明负载很高 使用top或者类似的工具（dstat），查看cpu相关指标  5.现在有一个大小约1g的源代码目录（如linux内核源码），需要从机器A上传输到机器B上。请给出两到三种方案，并陈述各方案的优劣。
+由于是源码文件，那么小问题一定是非常多的，最好先打包压缩，然后再使用scp或者rsync进行传输。
+ scp传输加密 rsync比较灵活，可以排除部分文件/目录 压缩完后再传输，利用计算资源节省网络带宽提升效率 也可以直接起一个python http server，然后对端下载  6.现有一个目录，其中有一百万(数量级)个的小文件，请给出两到三种删除该目录的方法，并陈述各方案的优劣。
+ rm -rf /data/dst这个方法可以，慢慢等，千万不要rm -rf /data/dst/*，小文件会列出来，参数列表过长，报错 find /data/dst -type f | xargs rm -f该方法能删除，但是会比较慢 ``find /data/dst -type f -delete`该方法能删除，比2快 mkdir /tmp/dst &amp;&amp; rsync --delete-before -a -H -v --progress --stats /tmp/dst/ /data/dst利用rsync的--delete选项来删除  " />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://troy.wang/docs/linux/interview/interview-s1/" />
+
+<title>伪装者-S1 | /bin/troy.wang</title>
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.6df681b0bb21155cba49f6078e3559216772d8e03e780d240c73ea21817ed5e5.css" integrity="sha256-bfaBsLshFVy6SfYHjjVZIWdy2OA&#43;eA0kDHPqIYF&#43;1eU=">
+<script defer src="/en.search.min.98150f84f15670dd15a0308be7f26d10d7474a77213c5fa4f8e042be3c8e8257.js" integrity="sha256-mBUPhPFWcN0VoDCL5/JtENdHSnchPF&#43;k&#43;OBCvjyOglc="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" class="hidden" id="menu-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  <nav>
+<h2 class="book-brand">
+  <a href="/"><span>/bin/troy.wang</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <span>Kubernetes</span>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/argo-rollouts-support-traefik/" class="">argo-rollouts之流量管理添加traefik支持</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/argo-rollouts/" class="">k8s灰度发布神器之argo-rollouts</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/coredns-in-production/" class="">在kubernetes生产环境coredns</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/run-microk8s-on-ubuntu/" class="">在ubuntu上运行microk8s</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/linux/" class="">linux</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/basic/" class="collapsed ">linux基础知识</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/monitor/" class="collapsed ">监控</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/interview/" class="collapsed ">伪装者</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/interview/interview-s1/" class="active">伪装者-S1</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/bigdata/" class="collapsed ">大数据</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/shell/" class="collapsed ">shell</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/n9e/" class="">n9e</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/" class="collapsed ">n9e源码学golang</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/compose/" class="">编排</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/compose/ansible/" class="collapsed ">ansible</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/compose/terraform/" class="collapsed ">terraform</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <span>golang</span>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/golang/posts/golang-gateway/" class="">golang实现简单网关</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/golang/posts/circuit-breaker/" class="">hytrix-go</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/about-me/" class="">关于我</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+  </ul>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="/posts/" >
+        博客
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>伪装者-S1</strong>
+
+  <label for="toc-control">
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+  </label>
+</div>
+
+
+  
+    <input type="checkbox" class="hidden" id="toc-control" />
+    <aside class="hidden clearfix">
+      
+  <nav id="TableOfContents"></nav>
+
+
+    </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><p><strong>1.给定一个nginx的日志access.log，请输出实时的qps.</strong></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#66d9ef">while</span> true
+<span style="color:#66d9ef">do</span>
+    datatime<span style="color:#f92672">=</span><span style="color:#e6db74">`</span>date +%d/%b/%Y:%T<span style="color:#e6db74">`</span>
+    a<span style="color:#f92672">=</span><span style="color:#e6db74">`</span>grep <span style="color:#e6db74">&#34;</span>$datatime<span style="color:#e6db74">&#34;</span> /var/log/nginx/access.log|wc -l<span style="color:#e6db74">`</span>
+    echo <span style="color:#e6db74">&#34;</span>$a<span style="color:#e6db74">&#34;</span>
+    sleep <span style="color:#ae81ff">1</span>
+<span style="color:#66d9ef">done</span>
+</code></pre></div><p><strong>2.现有一个100G大小的日志文件，由于时间因素，只允许读取一次，但需要分别将含有两个pattern的行输出到两个文件中，请给出方案</strong></p>
+<p><em>假设pattern1和pattern2</em></p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">awk <span style="color:#e6db74">&#39;{ if ($0 ~ /pattern1/ ) print $0 &gt;&gt; &#34;a&#34;; if ( $0 ~ /pattern2/ ) print $0 &gt;&gt; &#34;b&#34;}&#39;</span> sample.txt
+</code></pre></div><p><strong>3.发现某IP无法访问，请给出尽可能详细的诊断方案，定位可能存在的问题。（目标机器宕机、近机房端网络中断、骨干网问题、或者其他可能的问题。）</strong></p>
+<ol>
+<li>ping目标机器</li>
+<li>mtr/traceroute该IP，看到哪个节点有问题</li>
+<li>网络路径上进行抓包tcpdump</li>
+</ol>
+<p><strong>4.uptime命令的输出中有load average: 0.24, 0.30, 0.24，请(1)解释这里load的数值的含义；(2)说明该数值多大时表示系统负载很高；(3)当系统负载高时，如何找出是什么因素导致负载高的。</strong></p>
+<ol>
+<li>uptime三个值分别为1分钟，5分钟和15分钟的平均负载</li>
+<li>当负载值大于等于CPU核心数的时候，表明负载很高</li>
+<li>使用top或者类似的工具（dstat），查看cpu相关指标</li>
+</ol>
+<p><strong>5.现在有一个大小约1g的源代码目录（如linux内核源码），需要从机器A上传输到机器B上。请给出两到三种方案，并陈述各方案的优劣。</strong></p>
+<p>由于是源码文件，那么小问题一定是非常多的，最好先打包压缩，然后再使用scp或者rsync进行传输。</p>
+<ol>
+<li>scp传输加密</li>
+<li>rsync比较灵活，可以排除部分文件/目录</li>
+<li>压缩完后再传输，利用计算资源节省网络带宽提升效率</li>
+<li>也可以直接起一个python http server，然后对端下载</li>
+</ol>
+<p><strong>6.现有一个目录，其中有一百万(数量级)个的小文件，请给出两到三种删除该目录的方法，并陈述各方案的优劣。</strong></p>
+<ol>
+<li><code>rm -rf /data/dst</code>这个方法可以，慢慢等，千万不要<code>rm -rf /data/dst/*</code>，小文件会列出来，参数列表过长，报错</li>
+<li><code>find /data/dst -type f | xargs rm -f</code>该方法能删除，但是会比较慢</li>
+<li>``find /data/dst -type f -delete`该方法能删除，比2快</li>
+<li><code>mkdir /tmp/dst &amp;&amp; rsync --delete-before -a -H -v --progress --stats /tmp/dst/ /data/dst</code>利用rsync的<code>--delete</code>选项来删除</li>
+</ol>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex justify-between">
+
+
+
+
+
+</div>
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  <nav id="TableOfContents"></nav>
+
+ 
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

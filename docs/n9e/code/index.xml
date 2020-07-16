@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>n9e源码学golang on /bin/troy.wang</title>
+    <link>https://troy.wang/docs/n9e/code/</link>
+    <description>Recent content in n9e源码学golang on /bin/troy.wang</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="https://troy.wang/docs/n9e/code/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>n9e整体结构</title>
+      <link>https://troy.wang/docs/n9e/code/n9e-arch/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/n9e/code/n9e-arch/</guid>
+      <description>11</description>
+    </item>
+    
+    <item>
+      <title>n9e的http框架</title>
+      <link>https://troy.wang/docs/n9e/code/http-framework/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/n9e/code/http-framework/</guid>
+      <description>n9e的http框架使用 Web流程  初始化http.Server 配置logging,recovery,session中间件 装载路由routers 启动http服务 关闭处理平滑关闭  web服务源码 // server object var srv = &amp;amp;http.Server{ ReadTimeout: 10 * time.Second, WriteTimeout: 10 * time.Second, MaxHeaderBytes: 1 &amp;lt;&amp;lt; 20, } // start server func Start() { // get global config 	c := config.Get() // init middlewares 	loggerMid := middleware.LoggerWithConfig(middleware.LoggerConfig{SkipPaths: skipPaths}) recoveryMid := middleware.Recovery() store := cookie.NewStore([]byte(c.HTTP.Secret)) sessionMid := sessions.Sessions(&amp;#34;falcon-ng&amp;#34;, store) // debug mode? 	if c.Logger.Level != &amp;#34;DEBUG&amp;#34; { gin.</description>
+    </item>
+    
+    <item>
+      <title>正则小剧场</title>
+      <link>https://troy.wang/docs/n9e/code/regex/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/n9e/code/regex/</guid>
+      <description>正则小剧场 golang默认的正则，并非pcre正则，像正则断言的语法，golang就不支持
+这里提供一个正则测试网站: regex101
+零宽断言 零宽断言是匹配宽度为零，满足一定的条件/断言,通常用于查找在特定内容，该内容前或者后满足一定条件，但是匹配内容又不包括这些条件。
+零宽断言可以拆成两部分理解，零宽和断言。
+ 零宽: 代表满足条件，但是不作为匹配内容，看上去好像宽度为零 断言: 声明一个应该为真的事实，只有当断言为真时才会继续进行匹配  断言条件所在的位置(前后)以及断言条件是否取反(正负)，又可以将零宽断言分为四种: 负向先行/负向后发/先行/后发。
+具体表达式:
+ (?=表达式) (?!表达式) (?&amp;lt;表达式) (?&amp;lt;!表达式)  实践 提醒
+macos系统的grep不支持-P选项，一下均使用linux中的grep测试，可以使用在线正则regex101网站进行测试  样本 $ cat &amp;gt; /tmp/text &amp;lt;&amp;lt;-EOF &amp;gt; api01retcode000000 &amp;gt; api01retcode000001 &amp;gt; api01retcode000002 &amp;gt; api02retcode000000 &amp;gt; api02retcode000001 &amp;gt; api02retcode000002 &amp;gt; api03retcode000000 &amp;gt; api03retcode000001 &amp;gt; api02retcode000002 &amp;gt; EOF 先行正断言 # 先行正断言 retcode(?=000000)(\d{6}) $ grep -P &amp;#39;retcode(?=000000)(\d{6})&amp;#39; /tmp/text api01retcode000000 api02retcode000000 api03retcode000000 先行负断言 # 先行负断言 retcode(?=000000)(\d{6}) $ grep -P &amp;#39;retcode(?</description>
+    </item>
+    
+  </channel>
+</rss>

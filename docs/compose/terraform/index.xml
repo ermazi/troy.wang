@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>terraform on /bin/troy.wang</title>
+    <link>https://troy.wang/docs/compose/terraform/</link>
+    <description>Recent content in terraform on /bin/troy.wang</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="https://troy.wang/docs/compose/terraform/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>terraform</title>
+      <link>https://troy.wang/docs/compose/terraform/terraform/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/compose/terraform/terraform/</guid>
+      <description>terraform 名词解释 Meta-Arguments cli可以在resource中使用meta-arguments，来改变资源的行为：
+ depends_on 显式指定依赖 count 根据count指定多个资源，可以使用count.index引用当前count for_each 根据map或者set来创建多个资源，key用each.key，value用each.value provider 选择一个非默认的provider lifecycle 定义生命周期 provisioner and connection 资源创建成功以后做一些事，比如注册啊，执行配置管理任务啊之类的  https://alex.dzyoba.com/blog/terraform-ansible/    </description>
+    </item>
+    
+    <item>
+      <title>terraform-aliyun</title>
+      <link>https://troy.wang/docs/compose/terraform/aliyun/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/compose/terraform/aliyun/</guid>
+      <description>阿里云常用资源terraform栗子 slb resource alicloud_slb main { name = var.name specification = var.spec == &amp;quot;None&amp;quot; ? null : var.spec address_type = var.vswitchid == &amp;quot;&amp;quot; ? &amp;quot;internet&amp;quot; : &amp;quot;intranet&amp;quot; vswitch_id = var.vswitchid == &amp;quot;&amp;quot; ? null : var.vswitchid delete_protection = var.delete_protection instance_charge_type = &amp;quot;PostPaid&amp;quot; } </description>
+    </item>
+    
+    <item>
+      <title>terraform数据类型</title>
+      <link>https://troy.wang/docs/compose/terraform/data-type/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/compose/terraform/data-type/</guid>
+      <description>terraform数据类型
+ string number bool list tuple map object null  </description>
+    </item>
+    
+    <item>
+      <title>terraform资料聚合</title>
+      <link>https://troy.wang/docs/compose/terraform/data-agg/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/compose/terraform/data-agg/</guid>
+      <description>terraform资料聚合
+各种链接入口  所有providers  阿里云provider   所有backends 内建函数  文章  Terraform tips &amp;amp; tricks: loops, if-statements, and gotchas  </description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>golang on /bin/troy.wang</title>
+    <link>https://troy.wang/docs/golang/</link>
+    <description>Recent content in golang on /bin/troy.wang</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="https://troy.wang/docs/golang/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>golang实现简单网关</title>
+      <link>https://troy.wang/docs/golang/posts/golang-gateway/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/golang/posts/golang-gateway/</guid>
+      <description>golang实现简单网关  网关=反向代理+负载均衡+各种策略，技术实现也有多种多样，有基于nginx使用lua的实现，比如openresty、kong；也有基于zuul的通用网关；还有就是golang的网关，比如tyk。
+这篇文章主要是讲如何基于golang实现一个简单的网关。
+ 1. 预备 1.1. 准备两个后端web服务 启动两个后端web服务（代码） type RealServer struct { Addr string } func (r *RealServer) Run() { log.Println(&amp;#34;start http server at &amp;#34; + r.Addr) mux := http.NewServeMux() mux.HandleFunc(&amp;#34;/&amp;#34;, r.EchoHandler) mux.HandleFunc(&amp;#34;/base/error&amp;#34;, r.ErrorHandler) mux.HandleFunc(&amp;#34;/timeout&amp;#34;, r.TimeoutHandler) server := &amp;amp;http.Server{ Addr: r.Addr, WriteTimeout: time.Second * 3, Handler: mux, } go func() { log.Fatal(server.ListenAndServe()) }() } func (r *RealServer) EchoHandler(w http.ResponseWriter, req *http.Request) { upath := fmt.Sprintf(&amp;#34;http://%s%s\n&amp;#34;, r.Addr, req.URL.Path) realIP := fmt.</description>
+    </item>
+    
+    <item>
+      <title>hytrix-go</title>
+      <link>https://troy.wang/docs/golang/posts/circuit-breaker/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/golang/posts/circuit-breaker/</guid>
+      <description>基于hytrix-go的熔断器  流量限制，熔断器，服务降级
+ 1. 代码示例 package main import ( &amp;#34;errors&amp;#34; &amp;#34;github.com/afex/hystrix-go/hystrix&amp;#34; &amp;#34;log&amp;#34; &amp;#34;net/http&amp;#34; &amp;#34;time&amp;#34; ) func main() { hystrixStreamHandler := hystrix.NewStreamHandler() hystrixStreamHandler.Start() go http.ListenAndServe(&amp;#34;:8074&amp;#34;, hystrixStreamHandler) hystrix.ConfigureCommand(&amp;#34;aaa&amp;#34;, hystrix.CommandConfig{ Timeout: 1000, // 单次请求 超时时间 	MaxConcurrentRequests: 1, // 最大并发量 	SleepWindow: 5000, // 熔断后多久去尝试服务是否可用 	RequestVolumeThreshold: 1, ErrorPercentThreshold: 1, }) for i := 0; i &amp;lt; 10000; i++ { //异步调用使用 hystrix.Go 	err := hystrix.Do(&amp;#34;aaa&amp;#34;, func() error { //test case 1 并发测试 	if i == 0 { return errors.</description>
+    </item>
+    
+  </channel>
+</rss>

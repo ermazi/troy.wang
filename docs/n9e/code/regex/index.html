@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="正则小剧场 golang默认的正则，并非pcre正则，像正则断言的语法，golang就不支持
+这里提供一个正则测试网站: regex101
+零宽断言 零宽断言是匹配宽度为零，满足一定的条件/断言,通常用于查找在特定内容，该内容前或者后满足一定条件，但是匹配内容又不包括这些条件。
+零宽断言可以拆成两部分理解，零宽和断言。
+ 零宽: 代表满足条件，但是不作为匹配内容，看上去好像宽度为零 断言: 声明一个应该为真的事实，只有当断言为真时才会继续进行匹配  断言条件所在的位置(前后)以及断言条件是否取反(正负)，又可以将零宽断言分为四种: 负向先行/负向后发/先行/后发。
+具体表达式:
+ (?=表达式) (?!表达式) (?&lt;表达式) (?&lt;!表达式)  实践 提醒
+macos系统的grep不支持-P选项，一下均使用linux中的grep测试，可以使用在线正则regex101网站进行测试  样本 $ cat &gt; /tmp/text &lt;&lt;-EOF &gt; api01retcode000000 &gt; api01retcode000001 &gt; api01retcode000002 &gt; api02retcode000000 &gt; api02retcode000001 &gt; api02retcode000002 &gt; api03retcode000000 &gt; api03retcode000001 &gt; api02retcode000002 &gt; EOF 先行正断言 # 先行正断言 retcode(?=000000)(\d{6}) $ grep -P &#39;retcode(?=000000)(\d{6})&#39; /tmp/text api01retcode000000 api02retcode000000 api03retcode000000 先行负断言 # 先行负断言 retcode(?=000000)(\d{6}) $ grep -P &#39;retcode(?"><meta property="og:title" content="正则小剧场" />
+<meta property="og:description" content="正则小剧场 golang默认的正则，并非pcre正则，像正则断言的语法，golang就不支持
+这里提供一个正则测试网站: regex101
+零宽断言 零宽断言是匹配宽度为零，满足一定的条件/断言,通常用于查找在特定内容，该内容前或者后满足一定条件，但是匹配内容又不包括这些条件。
+零宽断言可以拆成两部分理解，零宽和断言。
+ 零宽: 代表满足条件，但是不作为匹配内容，看上去好像宽度为零 断言: 声明一个应该为真的事实，只有当断言为真时才会继续进行匹配  断言条件所在的位置(前后)以及断言条件是否取反(正负)，又可以将零宽断言分为四种: 负向先行/负向后发/先行/后发。
+具体表达式:
+ (?=表达式) (?!表达式) (?&lt;表达式) (?&lt;!表达式)  实践 提醒
+macos系统的grep不支持-P选项，一下均使用linux中的grep测试，可以使用在线正则regex101网站进行测试  样本 $ cat &gt; /tmp/text &lt;&lt;-EOF &gt; api01retcode000000 &gt; api01retcode000001 &gt; api01retcode000002 &gt; api02retcode000000 &gt; api02retcode000001 &gt; api02retcode000002 &gt; api03retcode000000 &gt; api03retcode000001 &gt; api02retcode000002 &gt; EOF 先行正断言 # 先行正断言 retcode(?=000000)(\d{6}) $ grep -P &#39;retcode(?=000000)(\d{6})&#39; /tmp/text api01retcode000000 api02retcode000000 api03retcode000000 先行负断言 # 先行负断言 retcode(?=000000)(\d{6}) $ grep -P &#39;retcode(?" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://troy.wang/docs/n9e/code/regex/" />
+
+<title>正则小剧场 | /bin/troy.wang</title>
+<link rel="icon" href="/favicon.png" type="image/x-icon">
+<link rel="stylesheet" href="/book.min.6df681b0bb21155cba49f6078e3559216772d8e03e780d240c73ea21817ed5e5.css" integrity="sha256-bfaBsLshFVy6SfYHjjVZIWdy2OA&#43;eA0kDHPqIYF&#43;1eU=">
+<script defer src="/en.search.min.98150f84f15670dd15a0308be7f26d10d7474a77213c5fa4f8e042be3c8e8257.js" integrity="sha256-mBUPhPFWcN0VoDCL5/JtENdHSnchPF&#43;k&#43;OBCvjyOglc="></script>
+<!--
+Made with Book Theme
+https://github.com/alex-shpak/hugo-book
+-->
+
+  
+</head>
+
+<body>
+  <input type="checkbox" class="hidden" id="menu-control" />
+  <main class="container flex">
+    <aside class="book-menu">
+      
+  <nav>
+<h2 class="book-brand">
+  <a href="/"><span>/bin/troy.wang</span>
+  </a>
+</h2>
+
+
+<div class="book-search">
+  <input type="text" id="book-search-input" placeholder="Search" aria-label="Search" maxlength="64" data-hotkeys="s/" />
+  <div class="book-search-spinner spinner hidden"></div>
+  <ul id="book-search-results"></ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <span>Kubernetes</span>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/argo-rollouts-support-traefik/" class="">argo-rollouts之流量管理添加traefik支持</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/argo-rollouts/" class="">k8s灰度发布神器之argo-rollouts</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/coredns-in-production/" class="">在kubernetes生产环境coredns</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/kubernetes/posts/run-microk8s-on-ubuntu/" class="">在ubuntu上运行microk8s</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/linux/" class="">linux</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/basic/" class="collapsed ">linux基础知识</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/monitor/" class="collapsed ">监控</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/interview/" class="collapsed ">伪装者</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/bigdata/" class="collapsed ">大数据</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/linux/shell/" class="collapsed ">shell</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/n9e/" class="">n9e</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/" class="collapsed ">n9e源码学golang</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/n9e-arch/" class="">n9e整体结构</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/http-framework/" class="">n9e的http框架</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/n9e/code/regex/" class="active">正则小剧场</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/compose/" class="">编排</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/compose/ansible/" class="collapsed ">ansible</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/compose/terraform/" class="collapsed ">terraform</a>
+  
+
+          
+  
+  
+  
+
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <span>golang</span>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+      
+        <li>
+          
+  
+    <a href="/docs/golang/posts/golang-gateway/" class="">golang实现简单网关</a>
+  
+
+        </li>
+      
+    
+      
+        <li>
+          
+  
+    <a href="/docs/golang/posts/circuit-breaker/" class="">hytrix-go</a>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+        </li>
+      
+    
+      
+        <li class="book-section-flat" >
+          
+  
+    <a href="/docs/about-me/" class="">关于我</a>
+  
+
+          
+  
+  
+  
+
+  
+  <ul>
+    
+  </ul>
+  
+
+        </li>
+      
+    
+  </ul>
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+<ul>
+  
+  <li>
+    <a href="/posts/" >
+        博客
+      </a>
+  </li>
+  
+</ul>
+
+
+
+
+
+
+</nav>
+
+
+
+
+  <script>(function(){var menu=document.querySelector("aside.book-menu nav");addEventListener("beforeunload",function(event){localStorage.setItem("menu.scrollTop",menu.scrollTop);});menu.scrollTop=localStorage.getItem("menu.scrollTop");})();</script>
+
+
+ 
+    </aside>
+
+    <div class="book-page">
+      <header class="book-header">
+        
+  <div class="flex align-center justify-between">
+  <label for="menu-control">
+    <img src="/svg/menu.svg" class="book-icon" alt="Menu" />
+  </label>
+
+  <strong>正则小剧场</strong>
+
+  <label for="toc-control">
+    <img src="/svg/toc.svg" class="book-icon" alt="Table of Contents" />
+  </label>
+</div>
+
+
+  
+    <input type="checkbox" class="hidden" id="toc-control" />
+    <aside class="hidden clearfix">
+      
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#零宽断言">零宽断言</a></li>
+    <li><a href="#实践">实践</a>
+      <ul>
+        <li><a href="#样本">样本</a></li>
+        <li><a href="#先行正断言">先行正断言</a></li>
+        <li><a href="#先行负断言">先行负断言</a></li>
+        <li><a href="#后发正断言">后发正断言</a></li>
+        <li><a href="#后发负断言">后发负断言</a></li>
+        <li><a href="#非捕获分组">非捕获分组</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+
+    </aside>
+  
+ 
+      </header>
+
+      
+      
+  <article class="markdown"><h1 id="正则小剧场">正则小剧场</h1>
+<p>golang默认的正则，并非pcre正则，像正则断言的语法，golang就不支持</p>
+<p>这里提供一个正则测试网站: <a href="https://regex101.com/">regex101</a></p>
+<h2 id="零宽断言">零宽断言</h2>
+<p><code>零宽断言</code>是匹配宽度为零，满足一定的条件/断言,通常用于查找在<code>特定内容</code>，该内容前或者后满足<code>一定条件</code>，但是<code>匹配内容</code>又不包括<code>这些条件</code>。</p>
+<p><code>零宽断言</code>可以拆成两部分理解，<code>零宽</code>和<code>断言</code>。</p>
+<ul>
+<li><code>零宽</code>: 代表满足条件，但是不作为匹配内容，看上去好像<code>宽度为零</code></li>
+<li><code>断言</code>: 声明一个应该为真的事实，只有当断言为真时才会继续进行匹配</li>
+</ul>
+<p>断言条件所在的位置(前后)以及断言条件是否取反(正负)，又可以将<code>零宽断言</code>分为四种: 负向先行/负向后发/先行/后发。</p>
+<p>具体表达式:</p>
+<ul>
+<li>(?=表达式)</li>
+<li>(?!表达式)</li>
+<li>(?&lt;表达式)</li>
+<li>(?&lt;!表达式)</li>
+</ul>
+<h2 id="实践">实践</h2>
+<blockquote class="book-hint warning">
+  <strong>提醒</strong><br>
+macos系统的grep不支持<code>-P</code>选项，一下均使用linux中的grep测试，可以使用在线正则<a href="https://regex101.com/">regex101</a>网站进行测试
+</blockquote>
+
+<h3 id="样本">样本</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ cat &gt; /tmp/text <span style="color:#e6db74">&lt;&lt;-EOF
+</span><span style="color:#e6db74">&gt; api01retcode000000
+</span><span style="color:#e6db74">&gt; api01retcode000001
+</span><span style="color:#e6db74">&gt; api01retcode000002
+</span><span style="color:#e6db74">&gt; api02retcode000000
+</span><span style="color:#e6db74">&gt; api02retcode000001
+</span><span style="color:#e6db74">&gt; api02retcode000002
+</span><span style="color:#e6db74">&gt; api03retcode000000
+</span><span style="color:#e6db74">&gt; api03retcode000001
+</span><span style="color:#e6db74">&gt; api02retcode000002
+</span><span style="color:#e6db74">&gt; EOF</span>
+</code></pre></div><h3 id="先行正断言">先行正断言</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 先行正断言 retcode(?=000000)(\d{6})</span>
+$ grep -P <span style="color:#e6db74">&#39;retcode(?=000000)(\d{6})&#39;</span> /tmp/text
+api01retcode000000
+api02retcode000000
+api03retcode000000
+</code></pre></div><h3 id="先行负断言">先行负断言</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 先行负断言 retcode(?=000000)(\d{6})</span>
+$ grep -P <span style="color:#e6db74">&#39;retcode(?!000000)(\d{6})&#39;</span> /tmp/text
+api01retcode000001
+api01retcode000002
+api02retcode000001
+api02retcode000002
+api03retcode000001
+api02retcode000002
+</code></pre></div><h3 id="后发正断言">后发正断言</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 后发正断言 (?&lt;=api01)retcode(\d{6})</span>
+$ grep -P <span style="color:#e6db74">&#39;(?&lt;=api01)retcode(\d{6})&#39;</span> /tmp/text
+api01retcode000000
+api01retcode000001
+api01retcode000002
+</code></pre></div><h3 id="后发负断言">后发负断言</h3>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#75715e"># 后发负断言 (?&lt;!api01)retcode(\d{6})</span>
+$ grep -P <span style="color:#e6db74">&#39;(?&lt;!api01)retcode(\d{6})&#39;</span> /tmp/text
+api02retcode000000
+api02retcode000001
+api02retcode000002
+api03retcode000000
+api03retcode000001
+api02retcode000002
+</code></pre></div><h3 id="非捕获分组">非捕获分组</h3>
+<p>另外还有个不进行断言，而是作为非捕获分组存在，比如需要使用小括号进行或操作，但是不想改内容作为分组匹配内容时，可以使用，语法为:<code>(?:mo|fa)ther</code></p>
+</article>
+ 
+      
+
+      <footer class="book-footer">
+        
+  <div class="flex justify-between">
+
+
+
+
+
+</div>
+
+ 
+        
+      </footer>
+
+      
+  
+  <div class="book-comments">
+
+</div>
+  
+ 
+
+      <label for="menu-control" class="hidden book-menu-overlay"></label>
+    </div>
+
+    
+    <aside class="book-toc">
+      
+  <nav id="TableOfContents">
+  <ul>
+    <li><a href="#零宽断言">零宽断言</a></li>
+    <li><a href="#实践">实践</a>
+      <ul>
+        <li><a href="#样本">样本</a></li>
+        <li><a href="#先行正断言">先行正断言</a></li>
+        <li><a href="#先行负断言">先行负断言</a></li>
+        <li><a href="#后发正断言">后发正断言</a></li>
+        <li><a href="#后发负断言">后发负断言</a></li>
+        <li><a href="#非捕获分组">非捕获分组</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+ 
+    </aside>
+    
+  </main>
+
+  
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+

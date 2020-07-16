@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ansible on /bin/troy.wang</title>
+    <link>https://troy.wang/docs/compose/ansible/</link>
+    <description>Recent content in ansible on /bin/troy.wang</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="https://troy.wang/docs/compose/ansible/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>tricks</title>
+      <link>https://troy.wang/docs/compose/ansible/tricks/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/compose/ansible/tricks/</guid>
+      <description>tricks  ansible小技巧
+ </description>
+    </item>
+    
+    <item>
+      <title>common-roles</title>
+      <link>https://troy.wang/docs/compose/ansible/common-roles/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/compose/ansible/common-roles/</guid>
+      <description>common-roles 1. databases系列  MySQL MongoDB  2. 消息队列  RocketMQ  </description>
+    </item>
+    
+  </channel>
+</rss>

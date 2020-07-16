@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>shell on /bin/troy.wang</title>
+    <link>https://troy.wang/docs/linux/shell/</link>
+    <description>Recent content in shell on /bin/troy.wang</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    
+	<atom:link href="https://troy.wang/docs/linux/shell/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>高级bash脚本编程</title>
+      <link>https://troy.wang/docs/linux/shell/abs/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://troy.wang/docs/linux/shell/abs/</guid>
+      <description>高级bash脚本编程 变量 内部变量   $BASH
+  $EDITOR
+  $EUID 有效用户ID
+  $FUNCNAME 当前函数名
+  $GLOBIGNORE 文件名模式匹配列表，忽略
+  $GROUPS 当前用户所属的组
+  $HOME
+  $HOSTNAME
+  $HOSTTYPE 当前主机类型
+  $IFS 内部域分隔符，默认为空白(空格, 制表符,和换行符)，这个变量用来决定Bash在解释字符串时如何识别域, 或者单词边界.
+  $ echo $IFS | cat -vte $   $ bash -c &amp;#39;set w x y z; IFS=&amp;#34;+&amp;#34;; echo &amp;#34;$*&amp;#34;&amp;#39; w+x+y+z     $LINENO 记录自身在脚本中的行号</description>
+    </item>
+    
+  </channel>
+</rss>
